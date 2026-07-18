@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { CalendarDays, Menu, X, LogOut, User, Bell, ChevronDown } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/components/auth-provider'
@@ -10,6 +10,7 @@ import { getUnreadNotificationCount } from '@/lib/data'
 
 export function Header() {
   const router = useRouter()
+  const pathname = usePathname()
   const { user, isAuthenticated, logout: authLogout } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -58,15 +59,18 @@ export function Header() {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map(link => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map(link => {
+              const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${isActive ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:text-primary hover:bg-primary/10'}`}
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
           </nav>
 
           {/* Auth */}
@@ -136,16 +140,19 @@ export function Header() {
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-100 py-4 space-y-1">
-            {navLinks.map(link => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="flex px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map(link => {
+              const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex px-3 py-2.5 text-sm font-medium rounded-lg transition-all ${isActive ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:text-primary hover:bg-primary/10'}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
             <div className="pt-3 border-t border-gray-100 mt-2 flex gap-2">
               {isAuthenticated && user ? (
                 <>

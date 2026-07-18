@@ -144,7 +144,7 @@ export default function VendorBrowsePage() {
                 <Button
                   variant="outline"
                   onClick={() => setShowFilters(!showFilters)}
-                  className="gap-2"
+                  className={`gap-2 ${showFilters ? 'bg-primary/10 text-primary border-primary/30' : ''}`}
                 >
                   <Filter className="w-4 h-4" />
                   Filters
