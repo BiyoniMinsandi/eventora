@@ -37,12 +37,12 @@ export default function AboutPage() {
     {
       icon: Shield,
       title: 'Trust & Transparency',
-      description: 'Every vendor is manually reviewed before going live. Reviews come only from verified customers with completed bookings. No fake listings, no paid rankings.',
+      description: 'Every vendor is manually reviewed before going live. Reviews come only from verified customers with completed bookings. No fake listings and no paid rankings.',
     },
     {
       icon: Zap,
       title: 'Simple & Fast',
-      description: 'Browse, compare, and book in minutes. No phone calls, no back-and-forth emails — everything happens in one place.',
+      description: 'Browse, compare, and book in minutes. No phone calls or back-and-forth emails. Everything happens in one place.',
     },
     {
       icon: Award,
@@ -84,11 +84,8 @@ export default function AboutPage() {
                 <p className="text-muted-foreground mb-4 leading-relaxed">
                   Eventora was built to solve a simple but frustrating problem: finding reliable vendors for weddings, parties, and corporate events was slow, scattered, and stressful.
                 </p>
-                <p className="text-muted-foreground mb-4 leading-relaxed">
-                  We built a single platform where customers can browse verified vendors, compare services and prices, read genuine reviews, and book with confidence — all in one place. On the other side, talented vendors get a professional digital storefront and a direct line to customers actively planning events.
-                </p>
                 <p className="text-muted-foreground leading-relaxed">
-                  Built with Next.js, ASP.NET Core, and MongoDB, Eventora is growing steadily — with new vendors joining every week and customers returning to book again and again.
+                  We built a single platform where customers can browse verified vendors, compare services and prices, read genuine reviews, and book with confidence. Talented vendors get a professional digital storefront and a direct line to customers actively planning events.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -139,8 +136,8 @@ export default function AboutPage() {
             <div className="grid md:grid-cols-3 gap-8">
               {[
                 { title: 'Vetted Vendors Only', desc: 'Every vendor is reviewed and approved by our admin team before appearing on the platform.' },
-                { title: 'Genuine Reviews', desc: 'Reviews can only be submitted after a completed booking — no fake ratings.' },
-                { title: 'Real-Time Messaging', desc: 'Chat directly with your vendor once a booking is confirmed, with instant message delivery.' },
+                { title: 'Genuine Reviews', desc: 'Reviews can only be submitted after a completed booking. No fake ratings.' },
+                { title: 'Real-Time Messaging', desc: 'Chat directly with your vendor once a booking is confirmed. Messages are delivered instantly.' },
                 { title: 'Dispute Resolution', desc: 'Our admin team mediates disputes fairly if any issue arises between customers and vendors.' },
                 { title: 'Transparent Pricing', desc: 'Every vendor lists their price ranges upfront. No hidden fees from the platform.' },
                 { title: 'Secure Payments', desc: 'Stripe-powered checkout with full buyer protection on every booking.' },
