@@ -156,7 +156,7 @@ export default function RegisterPage() {
         </label>
         <Input
           id="contactName"
-          placeholder="Your Name"
+          placeholder=""
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           disabled={loading}
@@ -169,7 +169,7 @@ export default function RegisterPage() {
         </label>
         <Input
           id="businessName"
-          placeholder="Your Business Name"
+          placeholder=""
           value={businessName}
           onChange={(e) => setBusinessName(e.target.value)}
           disabled={loading}
@@ -185,14 +185,14 @@ export default function RegisterPage() {
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           disabled={loading}
-          className="w-full px-3 py-2 rounded-md border border-input bg-background text-foreground text-sm"
+          className={`w-full px-3 py-2 rounded-md border border-input bg-background text-sm ${category ? 'text-foreground' : 'text-muted-foreground'}`}
         >
-          <option value="">Select a category</option>
+          <option value="" disabled>Select a category</option>
           <option value="photography">Photography</option>
           <option value="catering">Catering</option>
           <option value="decoration">Decoration</option>
           <option value="venues">Venues</option>
-          <option value="music">Music & Entertainment</option>
+          <option value="music">Music &amp; Entertainment</option>
           <option value="other">Other</option>
         </select>
       </div>
@@ -201,13 +201,40 @@ export default function RegisterPage() {
         <label htmlFor="location" className="text-sm font-medium">
           Location / City
         </label>
-        <Input
+        <select
           id="location"
-          placeholder="Colombo"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           disabled={loading}
-        />
+          className={`w-full px-3 py-2 rounded-md border border-input bg-background text-sm ${location ? 'text-foreground' : 'text-muted-foreground'}`}
+        >
+          <option value="" disabled>Select a city</option>
+          <option>Ampara</option>
+          <option>Anuradhapura</option>
+          <option>Badulla</option>
+          <option>Batticaloa</option>
+          <option>Colombo</option>
+          <option>Galle</option>
+          <option>Gampaha</option>
+          <option>Hambantota</option>
+          <option>Jaffna</option>
+          <option>Kalutara</option>
+          <option>Kandy</option>
+          <option>Kegalle</option>
+          <option>Kilinochchi</option>
+          <option>Kurunegala</option>
+          <option>Mannar</option>
+          <option>Matale</option>
+          <option>Matara</option>
+          <option>Monaragala</option>
+          <option>Mullaitivu</option>
+          <option>Nuwara Eliya</option>
+          <option>Polonnaruwa</option>
+          <option>Puttalam</option>
+          <option>Ratnapura</option>
+          <option>Trincomalee</option>
+          <option>Vavuniya</option>
+        </select>
       </div>
 
       <div className="space-y-2">
@@ -217,7 +244,7 @@ export default function RegisterPage() {
         <Input
           id="vendorEmail"
           type="email"
-          placeholder="business@example.com"
+          placeholder=""
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={loading}
@@ -232,7 +259,7 @@ export default function RegisterPage() {
         <Input
           id="vendorPhone"
           type="tel"
-          placeholder="+94 71 234 5678"
+          placeholder=""
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           disabled={loading}
@@ -320,7 +347,6 @@ export default function RegisterPage() {
                   )}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground">Must be at least 6 characters.</p>
             </div>
 
             {/* Confirm Password */}
