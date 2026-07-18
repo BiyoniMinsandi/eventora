@@ -1,30 +1,25 @@
 'use client'
 
-import { Suspense, useEffect, useState, useRef } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { Button } from '@/components/ui/button'
-import { verifyPaymentSession, getBookingById, getOrCreateConversation, sendMessage } from '@/lib/data'
-import { CheckCircle2, Loader2, XCircle, Download, MessageCircle } from 'lucide-react'
-import { useAuth } from '@/components/auth-provider'
+import { verifyPaymentSession, getBookingById } from '@/lib/data'
+import { CheckCircle2, Loader2, XCircle, Download } from 'lucide-react'
 import type { Booking } from '@/lib/data'
 
 function SuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { user } = useAuth()
   const sessionId = searchParams.get('session_id')
-  const receiptRef = useRef<HTMLDivElement>(null)
 
   const [state, setState] = useState<'loading' | 'success' | 'error'>('loading')
   const [bookingId, setBookingId] = useState<string | null>(null)
   const [amount, setAmount] = useState<{ cents: number; currency: string } | null>(null)
   const [booking, setBooking] = useState<Booking | null>(null)
   const [error, setError] = useState('')
-  const [messageSent, setMessageSent] = useState(false)
-  const [sendingMsg, setSendingMsg] = useState(false)
 
   useEffect(() => {
     if (!sessionId) {
@@ -135,42 +130,7 @@ function SuccessContent() {
     printWindow.document.close()
   }
 
-  const handleSendToVendor = async () => {
-    if (!user || !booking || !amount) return
-    setSendingMsg(true)
-    try {
-      const convId = await getOrCreateConversation(
-        user.id,
-        user.fullName,
-        booking.vendorId,
-        booking.vendorBusinessName || booking.vendorName,
-        booking.id
-      )
-      const msgText =
-        `✅ Payment Confirmed!\n\n` +
-        `I have successfully paid ${formatAmount(amount.cents, amount.currency)} for the booking.\n\n` +
-        `📋 Booking: ${booking.service}\n` +
-        `📅 Event Date: ${new Date(booking.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}\n` +
-        `💳 Amount: ${formatAmount(amount.cents, amount.currency)}\n` +
-        `🔖 Booking ID: ${booking.id}\n\n` +
-        `Looking forward to working with you!`
-
-      await sendMessage({
-        conversationId: convId,
-        senderId: user.id,
-        senderName: user.fullName,
-        receiverId: booking.vendorId,
-        content: msgText,
-      })
-      setMessageSent(true)
-    } catch {
-      alert('Could not send message. Please try again.')
-    } finally {
-      setSendingMsg(false)
-    }
-  }
-
-  if (state === 'loading') {
+if (state === 'loading') {
     return (
       <div className="flex flex-col items-center gap-4">
         <Loader2 className="w-16 h-16 text-primary animate-spin" />
@@ -215,21 +175,7 @@ function SuccessContent() {
             Download Receipt (PDF)
           </Button>
 
-          <Button
-            variant="outline"
-            className="w-full gap-2"
-            onClick={handleSendToVendor}
-            disabled={sendingMsg || messageSent}
-          >
-            {sendingMsg ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <MessageCircle className="w-4 h-4" />
-            )}
-            {messageSent ? '✓ Receipt Sent to Vendor' : 'Send Receipt to Vendor via Message'}
-          </Button>
-
-          <div className="flex gap-3">
+<div className="flex gap-3">
             <Button asChild className="flex-1">
               <Link href="/customer/bookings">View My Bookings</Link>
             </Button>
