@@ -1,32 +1,17 @@
 'use client'
 
-/**
- * Route: /
- * Purpose: Public landing page + quick entry into vendor discovery.
- */
-
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
 import { apiFetch } from '@/lib/api'
 import { getPublicCategories } from '@/lib/data'
 import {
-  Camera,
-  Users,
-  Music,
-  Utensils,
-  Palette,
-  MapPin,
-  Star,
-  ArrowRight,
-  CheckCircle2,
-  MessageCircle,
-  Heart,
+  Camera, Users, Music, Utensils, Palette,
+  Star, ArrowRight, Search, ShieldCheck, Clock, MessageCircle,
 } from 'lucide-react'
 
 interface RecentReview {
@@ -38,19 +23,45 @@ interface RecentReview {
   createdAt: string
 }
 
-const CATEGORY_ICONS: Record<string, typeof Camera> = {
-  photography: Camera,
-  catering: Utensils,
-  decoration: Palette,
-  venues: Users,
-  music: Music,
+const CATEGORY_CONFIG: Record<string, { icon: typeof Camera; image: string; color: string }> = {
+  photography: {
+    icon: Camera,
+    image: 'https://images.unsplash.com/photo-1542038374576-f6f5de1fc16e?w=400&q=80',
+    color: 'from-violet-900/70',
+  },
+  catering: {
+    icon: Utensils,
+    image: 'https://images.unsplash.com/photo-1555244162-803834f70033?w=400&q=80',
+    color: 'from-amber-900/70',
+  },
+  decoration: {
+    icon: Palette,
+    image: 'https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=400&q=80',
+    color: 'from-pink-900/70',
+  },
+  venues: {
+    icon: Users,
+    image: 'https://images.unsplash.com/photo-1519167758481-83f550bb8d28?w=400&q=80',
+    color: 'from-blue-900/70',
+  },
+  music: {
+    icon: Music,
+    image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80',
+    color: 'from-emerald-900/70',
+  },
 }
+
+const GALLERY = [
+  'https://images.unsplash.com/photo-1519741497674-611481863552?w=600&q=80',
+  'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=600&q=80',
+  'https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=600&q=80',
+  'https://images.unsplash.com/photo-1519167758481-83f550bb8d28?w=600&q=80',
+]
 
 export default function HomePage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [reviews, setReviews] = useState<RecentReview[]>([])
-  const [reviewsLoading, setReviewsLoading] = useState(true)
   const [dbCategories, setDbCategories] = useState<Array<{ id: string; name: string; slug: string }>>([])
 
   useEffect(() => {
@@ -59,115 +70,107 @@ export default function HomePage() {
 
   useEffect(() => {
     let cancelled = false
-    ;(async () => {
-      try {
-        const data = await apiFetch<RecentReview[]>('/api/reviews/recent?limit=6', { auth: false })
-        if (!cancelled) setReviews(data)
-      } catch {
-        // silently ignore — section just stays hidden
-      } finally {
-        if (!cancelled) setReviewsLoading(false)
-      }
-    })()
+    apiFetch<RecentReview[]>('/api/reviews/recent?limit=3', { auth: false })
+      .then(data => { if (!cancelled) setReviews(data) })
+      .catch(() => {})
     return () => { cancelled = true }
   }, [])
 
-  // Convert the hero search input into a vendors listing URL.
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (searchQuery.trim()) {
-      router.push(`/vendors?search=${encodeURIComponent(searchQuery.trim())}`)
-    } else {
-      router.push('/vendors')
-    }
+    router.push(searchQuery.trim() ? `/vendors?search=${encodeURIComponent(searchQuery.trim())}` : '/vendors')
   }
 
   const categories = dbCategories.length > 0
-    ? dbCategories.map(c => ({
-        icon: CATEGORY_ICONS[c.slug] ?? Camera,
-        label: c.name,
-        href: `/vendors?category=${c.slug}`,
+    ? dbCategories.map(c => ({ slug: c.slug, label: c.name, href: `/vendors?category=${c.slug}`, ...CATEGORY_CONFIG[c.slug] ?? { icon: Camera, image: GALLERY[0], color: 'from-blue-900/70' } }))
+    : Object.entries(CATEGORY_CONFIG).map(([slug, cfg]) => ({
+        slug, label: slug.charAt(0).toUpperCase() + slug.slice(1),
+        href: `/vendors?category=${slug}`, ...cfg,
       }))
-    : [
-        { icon: Camera, label: 'Photographers', href: '/vendors?category=photography' },
-        { icon: Utensils, label: 'Caterers', href: '/vendors?category=catering' },
-        { icon: Palette, label: 'Decorators', href: '/vendors?category=decoration' },
-        { icon: Users, label: 'Venues', href: '/vendors?category=venues' },
-        { icon: Music, label: 'Musicians', href: '/vendors?category=music' },
-      ]
-
-  const steps = [
-    {
-      number: '01',
-      title: 'Search & Discover',
-      description: 'Browse hundreds of verified vendors in your area',
-      icon: MapPin,
-    },
-    {
-      number: '02',
-      title: 'Request Booking',
-      description: 'Send booking requests directly to vendors',
-      icon: MessageCircle,
-    },
-    {
-      number: '03',
-      title: 'Book & Celebrate',
-      description: 'Manage bookings and communicate seamlessly',
-      icon: Heart,
-    },
-  ]
 
   return (
     <>
       <Header />
       <main className="flex flex-col">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-b from-primary/5 via-accent/5 to-transparent py-20 md:py-32">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-balance mb-6">
-                Plan Your Event with <span className="text-primary">Trusted Vendors</span>
-              </h1>
-              <p className="text-lg md:text-xl text-muted-foreground mb-8 text-balance">
-                Connect with verified photographers, caterers, decorators, venues, musicians, and more for your perfect celebration.
-              </p>
 
-              {/* Search Bar */}
-              <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
-                <Input
+        {/* ── Hero ── */}
+        <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden">
+          <Image
+            src="https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=90"
+            alt="Elegant event celebration"
+            fill
+            className="object-cover object-center"
+            priority
+            unoptimized
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+
+          <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white">
+            <p className="text-sm font-semibold tracking-[0.25em] uppercase text-blue-300 mb-5">
+              Sri Lanka's Premier Event Marketplace
+            </p>
+            <h1 className="text-5xl md:text-7xl font-bold leading-[1.1] mb-6 drop-shadow-xl">
+              Your Perfect Event<br />
+              <span className="text-blue-400">Starts Here</span>
+            </h1>
+            <p className="text-lg md:text-xl text-white/75 mb-10 max-w-2xl mx-auto leading-relaxed">
+              Discover and book verified photographers, caterers, decorators, venues and musicians — all in one place.
+            </p>
+
+            <form onSubmit={handleSearch} className="flex gap-0 max-w-xl mx-auto mb-6 shadow-2xl rounded-xl overflow-hidden">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
                   type="text"
-                  placeholder="What are you looking for?"
-                  className="sm:max-w-xs"
+                  placeholder="Search photographers, venues, caterers…"
+                  className="w-full h-14 pl-12 pr-4 text-gray-900 bg-white text-sm focus:outline-none"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                 />
-                <Button size="lg" className="gap-2" type="submit">
-                  Search <ArrowRight className="w-4 h-4" />
-                </Button>
-              </form>
+              </div>
+              <button
+                type="submit"
+                className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors flex items-center gap-2"
+              >
+                Search <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
 
-              <p className="text-sm text-muted-foreground">
-                Join thousands of happy customers who found their perfect vendors
-              </p>
+            <div className="flex flex-wrap justify-center gap-6 text-sm text-white/60">
+              <span>✓ Verified vendors</span>
+              <span>✓ Secure payments</span>
+              <span>✓ Instant booking</span>
             </div>
           </div>
         </section>
 
-        {/* Categories */}
-        <section className="py-16 md:py-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Browse by Category</h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
-              {categories.map((category) => {
-                const Icon = category.icon
+        {/* ── Gallery Strip ── */}
+        <section className="grid grid-cols-4 h-40 md:h-56">
+          {GALLERY.map((src, i) => (
+            <div key={i} className="relative overflow-hidden">
+              <Image src={src} alt="" fill className="object-cover hover:scale-105 transition-transform duration-700" unoptimized />
+            </div>
+          ))}
+        </section>
+
+        {/* ── Categories ── */}
+        <section className="py-24 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-14">
+              <p className="text-blue-600 text-sm font-semibold tracking-widest uppercase mb-3">Explore</p>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900">Browse by Category</h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {categories.map(cat => {
+                const Icon = cat.icon ?? Camera
                 return (
-                  <Link
-                    key={category.label}
-                    href={category.href}
-                    className="group flex flex-col items-center justify-center p-6 rounded-lg border border-border hover:border-primary bg-card hover:bg-muted transition-all"
-                  >
-                    <Icon className="w-8 h-8 md:w-10 md:h-10 text-primary mb-3 group-hover:scale-110 transition-transform" />
-                    <span className="text-sm md:text-base font-medium text-center">{category.label}</span>
+                  <Link key={cat.slug} href={cat.href} className="group relative rounded-2xl overflow-hidden aspect-[3/4] shadow-md hover:shadow-xl transition-shadow">
+                    <Image src={cat.image ?? GALLERY[0]} alt={cat.label} fill className="object-cover group-hover:scale-110 transition-transform duration-500" unoptimized />
+                    <div className={`absolute inset-0 bg-gradient-to-t ${cat.color ?? 'from-blue-900/70'} to-transparent`} />
+                    <div className="absolute inset-0 flex flex-col items-center justify-end pb-5 text-white">
+                      <Icon className="w-7 h-7 mb-2 opacity-90" />
+                      <span className="font-semibold text-sm tracking-wide">{cat.label}</span>
+                    </div>
                   </Link>
                 )
               })}
@@ -175,20 +178,28 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* How It Works */}
-        <section className="py-16 md:py-24 bg-muted/30">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">How Eventora Works</h2>
+        {/* ── How It Works ── */}
+        <section className="py-24 bg-gray-50">
+          <div className="max-w-5xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <p className="text-blue-600 text-sm font-semibold tracking-widest uppercase mb-3">Simple Process</p>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900">How It Works</h2>
+            </div>
             <div className="grid md:grid-cols-3 gap-8">
-              {steps.map((step) => {
-                const Icon = step.icon
+              {[
+                { n: '01', icon: Search, title: 'Search & Discover', desc: 'Browse hundreds of verified vendors across Sri Lanka filtered by category and location.' },
+                { n: '02', icon: MessageCircle, title: 'Book & Confirm', desc: 'Send booking requests, chat with vendors, and confirm all details before your event.' },
+                { n: '03', icon: ShieldCheck, title: 'Pay Securely', desc: 'Pay with confidence through our secure Stripe-powered payment system.' },
+              ].map(s => {
+                const Icon = s.icon
                 return (
-                  <div key={step.number} className="flex flex-col items-center text-center">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <Icon className="w-8 h-8 text-primary" />
+                  <div key={s.n} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col items-start">
+                    <span className="text-5xl font-black text-blue-50 leading-none mb-4 select-none">{s.n}</span>
+                    <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center mb-4">
+                      <Icon className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="text-xl font-bold mb-2">{step.title}</h3>
-                    <p className="text-muted-foreground">{step.description}</p>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{s.title}</h3>
+                    <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
                   </div>
                 )
               })}
@@ -196,85 +207,94 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Why Choose */}
-        <section className="py-16 md:py-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Why Choose Eventora?</h2>
-            <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+        {/* ── Feature Banner ── */}
+        <section className="relative py-24 overflow-hidden">
+          <Image
+            src="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=1920&q=80"
+            alt="Event decoration"
+            fill
+            className="object-cover object-center"
+            unoptimized
+          />
+          <div className="absolute inset-0 bg-blue-900/80" />
+          <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">Everything For Your Special Day</h2>
+            <p className="text-white/70 text-lg mb-10 max-w-2xl mx-auto">
+              From intimate gatherings to grand celebrations — Eventora connects you with the best event professionals in Sri Lanka.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
               {[
-                { title: 'Verified Vendors', description: 'All vendors are carefully verified and reviewed by our team' },
-                { title: 'Easy Booking', description: 'Simple and intuitive booking process that takes minutes' },
-                { title: 'Secure Payments', description: 'Safe and secure payment processing with buyer protection' },
-                { title: 'Customer Support', description: '24/7 support team ready to help with any questions' },
-                { title: 'Ratings & Reviews', description: 'Real reviews from verified customers help you choose' },
-                { title: 'Dispute Resolution', description: 'Fair and transparent dispute resolution process' },
-              ].map((item) => (
-                <div key={item.title} className="flex gap-4">
-                  <CheckCircle2 className="w-6 h-6 text-accent flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-semibold mb-1">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                { icon: ShieldCheck, label: 'Verified Vendors' },
+                { icon: Clock, label: 'Fast Booking' },
+                { icon: MessageCircle, label: 'Direct Chat' },
+                { icon: Star, label: 'Trusted Reviews' },
+              ].map(f => {
+                const Icon = f.icon
+                return (
+                  <div key={f.label} className="flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-blue-300" />
+                    </div>
+                    <span className="text-sm font-medium text-white/80">{f.label}</span>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
+            <Button size="lg" asChild className="bg-white text-blue-700 hover:bg-blue-50 font-semibold px-8">
+              <Link href="/vendors">Explore Vendors <ArrowRight className="w-4 h-4 ml-2" /></Link>
+            </Button>
           </div>
         </section>
 
-        {/* Testimonials — real reviews from the database */}
-        {(reviewsLoading || reviews.length > 0) && (
-          <section className="py-16 md:py-24 bg-muted/30">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">What Our Customers Say</h2>
-              <div className="grid md:grid-cols-3 gap-8">
-                {reviewsLoading
-                  ? Array.from({ length: 3 }).map((_, i) => (
-                      <div key={i} className="bg-card p-6 rounded-lg border border-border space-y-3">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-16 w-full" />
-                        <Skeleton className="h-4 w-1/2" />
-                        <Skeleton className="h-3 w-1/3" />
+        {/* ── Reviews ── */}
+        {reviews.length > 0 && (
+          <section className="py-24 bg-white">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="text-center mb-14">
+                <p className="text-blue-600 text-sm font-semibold tracking-widest uppercase mb-3">Testimonials</p>
+                <h2 className="text-4xl md:text-5xl font-bold text-gray-900">What Our Customers Say</h2>
+              </div>
+              <div className="grid md:grid-cols-3 gap-6">
+                {reviews.map(r => (
+                  <div key={r.id} className="bg-gray-50 rounded-2xl p-8 border border-gray-100 flex flex-col">
+                    <div className="flex gap-1 mb-5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className={`w-4 h-4 ${i < r.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-200'}`} />
+                      ))}
+                    </div>
+                    <p className="text-gray-700 text-sm leading-relaxed mb-6 flex-1 line-clamp-4">"{r.comment}"</p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                        {r.customerName.charAt(0).toUpperCase()}
                       </div>
-                    ))
-                  : reviews.map((review) => (
-                      <div key={review.id} className="bg-card p-6 rounded-lg border border-border">
-                        <div className="flex gap-1 mb-4">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${i < review.rating ? 'fill-accent text-accent' : 'text-muted-foreground'}`}
-                            />
-                          ))}
-                        </div>
-                        <p className="text-foreground mb-4 line-clamp-4">{`"${review.comment}"`}</p>
-                        <div>
-                          <p className="font-semibold text-sm">{review.customerName}</p>
-                          <p className="text-xs text-muted-foreground">Reviewed {review.vendorName}</p>
-                        </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{r.customerName}</p>
+                        <p className="text-xs text-gray-400">Reviewed {r.vendorName}</p>
                       </div>
-                    ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </section>
         )}
 
-        {/* CTA Section */}
-        <section className="py-16 md:py-24">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Plan Your Event?</h2>
-            <p className="text-lg text-muted-foreground mb-8">
-              Register now and start exploring vendors for your special day
-            </p>
+        {/* ── CTA ── */}
+        <section className="py-24 bg-gray-50">
+          <div className="max-w-3xl mx-auto px-6 text-center">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-5">Ready to Plan Your Event?</h2>
+            <p className="text-gray-500 text-lg mb-10">Join thousands of happy customers who made their celebrations unforgettable.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
-                <Link href="/register">Get Started</Link>
+              <Button size="lg" asChild className="bg-blue-600 hover:bg-blue-700 text-white px-10 h-12 text-base font-semibold">
+                <Link href="/register">Get Started Free</Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
+              <Button size="lg" variant="outline" asChild className="border-gray-300 text-gray-700 hover:bg-gray-100 px-10 h-12 text-base">
                 <Link href="/vendors">Browse Vendors</Link>
               </Button>
             </div>
           </div>
         </section>
+
       </main>
       <Footer />
     </>
