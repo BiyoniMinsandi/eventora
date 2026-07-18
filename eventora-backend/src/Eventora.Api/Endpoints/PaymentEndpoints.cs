@@ -165,8 +165,9 @@ internal static class PaymentEndpoints
             }));
         });
 
-        // Verify session after redirect from Stripe (no webhook required for basic confirm)
-        group.MapPost("/verify-session", async (
+        // Verify session after redirect from Stripe — intentionally allows anonymous access.
+        // The Stripe session_id is a secure, unguessable token that proves payment.
+        app.MapPost("/api/payments/verify-session", async (
             VerifySessionRequest req,
             ClaimsPrincipal principal,
             IBookingRepository bookings,
@@ -175,9 +176,6 @@ internal static class PaymentEndpoints
             IConfiguration config,
             CancellationToken ct) =>
         {
-            var userId = CurrentUser.TryGetUserId(principal);
-            if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
-
             var stripeKey = config["Stripe:SecretKey"];
             if (string.IsNullOrWhiteSpace(stripeKey))
                 return Results.Problem(detail: "Payment gateway is not configured", statusCode: 503);
@@ -197,9 +195,6 @@ internal static class PaymentEndpoints
 
             var payment = await payments.GetByStripeSessionIdAsync(req.SessionId, ct);
             if (payment is null) return Results.NotFound(new { message = "Payment not found" });
-
-            if (payment.CustomerId != userId && !principal.IsInRole("admin"))
-                return Results.Forbid();
 
             if (session.PaymentStatus == "paid" && payment.Status != PaymentStatus.Completed)
             {
