@@ -28,38 +28,11 @@ export default function AboutPage() {
       .catch(() => {})
   }, [])
 
-  const teamMembers = [
-    {
-      initials: 'BM',
-      name: 'Biyoni Minsandi',
-      role: 'Founder & Lead Developer',
-      bio: 'Computer Science undergraduate and the mind behind Eventora. Built the full platform — from the React/Next.js frontend to the ASP.NET Core backend — as an academic capstone project with real-world commercial ambition. Passionate about bridging technology and Sri Lanka\'s vibrant events industry.',
-    },
-    {
-      initials: 'SR',
-      name: 'Sandeepa Ranaweera',
-      role: 'UX Advisor',
-      bio: 'UI/UX designer with four years of experience in product design for web and mobile. Guided the visual language, component library, and user-flow strategy for Eventora, ensuring the platform feels intuitive for both first-time customers and seasoned vendors.',
-    },
-    {
-      initials: 'PK',
-      name: 'Prashantha Kosgoda',
-      role: 'Business Development Advisor',
-      bio: 'Former operations manager at a leading Colombo event company. Contributed market research, vendor onboarding strategy, and pricing model design, drawing on a decade of hands-on experience in the Sri Lankan events industry.',
-    },
-    {
-      initials: 'NA',
-      name: 'Nilusha Abeysekara',
-      role: 'Academic Supervisor',
-      bio: 'Senior Lecturer in Software Engineering. Provided academic guidance, project mentorship, and structured feedback throughout the development lifecycle, ensuring the platform meets industry-standard quality benchmarks.',
-    },
-  ]
-
   const values = [
     {
       icon: Users,
       title: 'Community First',
-      description: 'Eventora exists to serve the Sri Lankan events community — connecting talented local vendors with customers who deserve trusted, transparent choices.',
+      description: 'Eventora exists to serve the events community — connecting talented vendors with customers who deserve trusted, transparent choices.',
     },
     {
       icon: Shield,
@@ -68,13 +41,13 @@ export default function AboutPage() {
     },
     {
       icon: Zap,
-      title: 'Built for Sri Lanka',
-      description: 'Designed with local pricing, local locations, and local culture in mind — from LKR pricing to Sinhala-friendly vendor categories.',
+      title: 'Simple & Fast',
+      description: 'Browse, compare, and book in minutes. No phone calls, no back-and-forth emails — everything happens in one place.',
     },
     {
       icon: Award,
       title: 'Quality Over Quantity',
-      description: 'We would rather have 50 exceptional vendors than 500 mediocre ones. Our approval process ensures every listing on the platform reflects genuine skill and professionalism.',
+      description: 'We would rather have 50 exceptional vendors than 500 mediocre ones. Our approval process ensures every listing reflects genuine skill and professionalism.',
     },
   ]
 
@@ -96,11 +69,8 @@ export default function AboutPage() {
           <div className="max-w-3xl mx-auto px-6 text-center">
             <p className="text-primary text-[10px] font-semibold tracking-[0.3em] uppercase mb-5">Our Story</p>
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">About Eventora</h1>
-            <p className="text-lg text-gray-500 mb-3 leading-relaxed">
-              Sri Lanka&apos;s first dedicated event vendor marketplace — built in 2026 to make planning your perfect event simple, transparent, and stress-free.
-            </p>
-            <p className="text-base text-gray-400">
-              One platform. Hundreds of verified vendors. Every celebration you can imagine.
+            <p className="text-lg text-gray-500 leading-relaxed">
+              A modern event vendor marketplace built to make planning your perfect event simple, transparent, and stress-free.
             </p>
           </div>
         </section>
@@ -112,13 +82,13 @@ export default function AboutPage() {
               <div>
                 <h2 className="text-3xl font-bold text-foreground mb-6">Our Story</h2>
                 <p className="text-muted-foreground mb-4 leading-relaxed">
-                  Eventora launched in <strong>January 2026</strong> as an academic final-year project with a clear real-world purpose: to solve a frustrating problem every Sri Lankan family knows too well. Finding reliable vendors for weddings, parties, and corporate events meant hours of WhatsApp messages, word-of-mouth referrals, and — too often — last-minute disappointments.
+                  Eventora was built to solve a simple but frustrating problem: finding reliable vendors for weddings, parties, and corporate events was slow, scattered, and stressful.
                 </p>
                 <p className="text-muted-foreground mb-4 leading-relaxed">
-                  The idea was simple but powerful: build a single platform where customers could browse verified vendors, compare services and prices, read genuine reviews, and book with confidence — all without leaving their phone. On the other side, talented local vendors — photographers, caterers, decorators, musicians, and more — would get a professional digital storefront and a direct line to customers actively planning events.
+                  We built a single platform where customers can browse verified vendors, compare services and prices, read genuine reviews, and book with confidence — all in one place. On the other side, talented vendors get a professional digital storefront and a direct line to customers actively planning events.
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
-                  The platform was built from the ground up using modern web technologies: a Next.js frontend, an ASP.NET Core backend with MongoDB, and real-time features powered by SignalR. Since launch, Eventora has been growing steadily, with new vendors joining every week and customers returning to book again and again.
+                  Built with Next.js, ASP.NET Core, and MongoDB, Eventora is growing steadily — with new vendors joining every week and customers returning to book again and again.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -162,47 +132,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Team */}
-        <section className="py-16 md:py-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">The People Behind Eventora</h2>
-              <p className="text-lg text-muted-foreground">A small, passionate team with a shared belief that Sri Lankan events deserve better tools.</p>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {teamMembers.map((member) => (
-                <Card key={member.name} className="p-6 text-center">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent mx-auto mb-4 flex items-center justify-center">
-                    <span className="text-xl font-bold text-white">{member.initials}</span>
-                  </div>
-                  <h3 className="font-bold text-foreground mb-1">{member.name}</h3>
-                  <p className="text-sm text-accent font-medium mb-3">{member.role}</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{member.bio}</p>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Technology */}
-        <section className="py-16 md:py-24 bg-muted/30">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-foreground mb-6 text-center">Built With Modern Technology</h2>
-            <div className="grid md:grid-cols-3 gap-6 text-center">
-              {[
-                { name: 'Frontend', stack: 'Next.js 15 · React 19 · Tailwind CSS · TypeScript' },
-                { name: 'Backend', stack: 'ASP.NET Core 9 · MongoDB · SignalR · JWT Auth' },
-                { name: 'Infrastructure', stack: 'Azure Blob Storage · SMTP Email · Clean Architecture' },
-              ].map((t) => (
-                <Card key={t.name} className="p-5">
-                  <h3 className="font-semibold text-foreground mb-2">{t.name}</h3>
-                  <p className="text-sm text-muted-foreground">{t.stack}</p>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Why Choose */}
         <section className="py-16 md:py-24 bg-primary/5">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -214,7 +143,7 @@ export default function AboutPage() {
                 { title: 'Real-Time Messaging', desc: 'Chat directly with your vendor once a booking is confirmed, with instant message delivery.' },
                 { title: 'Dispute Resolution', desc: 'Our admin team mediates disputes fairly if any issue arises between customers and vendors.' },
                 { title: 'Transparent Pricing', desc: 'Every vendor lists their price ranges upfront. No hidden fees from the platform.' },
-                { title: 'Built for Sri Lanka', desc: 'LKR pricing, local locations, and categories that match how events happen here.' },
+                { title: 'Secure Payments', desc: 'Stripe-powered checkout with full buyer protection on every booking.' },
               ].map((item) => (
                 <div key={item.title} className="flex gap-4">
                   <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
