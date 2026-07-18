@@ -70,9 +70,18 @@ builder.Services
 
 builder.Services.AddHostedService<MongoSeedHostedService>();
 
-// CORS — origins are read from config so there's no deployment-time editing required
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+// CORS — read from CORS_ORIGIN env var (single), or Cors:AllowedOrigins array, or dev defaults
+var corsOriginEnv = Environment.GetEnvironmentVariable("CORS_ORIGIN");
+string[] allowedOrigins;
+if (!string.IsNullOrWhiteSpace(corsOriginEnv))
+{
+    allowedOrigins = corsOriginEnv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+}
+else
+{
+    allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
                      ?? ["http://localhost:3000", "http://localhost:3001"];
+}
 
 builder.Services.AddCors(options =>
 {
