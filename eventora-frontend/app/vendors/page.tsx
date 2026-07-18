@@ -124,9 +124,10 @@ export default function VendorBrowsePage() {
         <Header />
         <main className="flex-1">
           {/* Search & Filter Section */}
-          <section className="border-b border-border bg-muted/30 py-8">
+          <section className="border-b border-gray-100 bg-gray-50/60 py-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <h1 className="text-3xl font-bold text-foreground mb-6">Browse Vendors</h1>
+              <p className="text-primary text-[10px] font-semibold tracking-[0.3em] uppercase mb-2">Discover</p>
+              <h1 className="text-4xl font-bold text-gray-900 mb-6">Browse Vendors</h1>
 
               {/* Search Bar */}
               <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -239,81 +240,65 @@ export default function VendorBrowsePage() {
                     const firstPhoto = vendor.photos && vendor.photos.length > 0 ? vendor.photos[0] : null
                     
                     return (
-                      <Card key={vendor.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <Card key={vendor.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-gray-100 hover:border-primary/20 rounded-2xl">
                         {/* Image */}
-                        <div className="relative bg-muted h-48 w-full overflow-hidden">
+                        <div className="relative bg-muted h-52 w-full overflow-hidden">
                           {firstPhoto ? (
-                              <Image
-                                src={firstPhoto}
-                                alt={vendor.businessName || vendor.fullName}
-                                width={80}
-                                height={80}
-                                className="object-cover w-full h-full"
-                              />
-                            ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
-                              <span className="text-4xl font-bold text-primary/20">
+                            <Image src={firstPhoto} alt={vendor.businessName || vendor.fullName} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/8 to-primary/20">
+                              <span className="text-6xl font-bold text-primary/20" style={{fontFamily:'var(--font-heading)'}}>
                                 {(vendor.businessName || vendor.fullName).charAt(0)}
                               </span>
                             </div>
                           )}
                           {vendor.approved && (
-                            <div className="absolute top-3 right-3 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">
-                              Verified
+                            <div className="absolute top-3 right-3 bg-white/95 text-primary px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide shadow-sm">
+                              ✓ Verified
+                            </div>
+                          )}
+                          {vendor.category && (
+                            <div className="absolute bottom-3 left-3 bg-black/50 backdrop-blur-sm text-white px-2.5 py-1 rounded-full text-[10px] font-medium capitalize">
+                              {vendor.category}
                             </div>
                           )}
                         </div>
 
                         {/* Content */}
                         <div className="p-5">
-                          <h3 className="font-bold text-foreground mb-1">
+                          <h3 className="font-bold text-gray-900 text-base mb-0.5">
                             {vendor.businessName || vendor.fullName}
                           </h3>
-                          <p className="text-xs text-muted-foreground mb-3 capitalize">
-                            {vendor.category || 'Vendor'}
-                          </p>
 
-                          {/* Location */}
                           {vendor.location && (
-                            <div className="flex items-center gap-1 mb-3 text-sm text-muted-foreground">
-                              <MapPin className="w-4 h-4" />
+                            <div className="flex items-center gap-1 mb-3 text-xs text-gray-400">
+                              <MapPin className="w-3 h-3" />
                               <span>{vendor.location}</span>
                             </div>
                           )}
 
-                          {/* Rating */}
-                          <div className="flex items-center gap-2 mb-4">
-                            <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="flex items-center gap-0.5">
                               {Array.from({ length: 5 }).map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`w-4 h-4 ${
-                                    i < Math.floor(averageRating)
-                                      ? 'fill-accent text-accent'
-                                      : 'text-muted-foreground'
-                                  }`}
-                                />
+                                <Star key={i} className={`w-3.5 h-3.5 ${i < Math.floor(averageRating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-100 text-gray-100'}`} />
                               ))}
                             </div>
-                            <span className="text-xs text-muted-foreground">
-                              {averageRating > 0 ? averageRating.toFixed(1) : 'No reviews'} ({reviewCount} reviews)
+                            <span className="text-xs text-gray-400">
+                              {averageRating > 0 ? averageRating.toFixed(1) : 'New'} {reviewCount > 0 && `(${reviewCount})`}
                             </span>
                           </div>
 
-                          {/* Price */}
-                          {vendor.pricing && (
-                            <p className="text-sm font-medium text-primary mb-4">{vendor.pricing}</p>
-                          )}
-
-                          {/* Description Preview */}
                           {vendor.description && (
-                            <p className="text-xs text-muted-foreground mb-4 line-clamp-2">
+                            <p className="text-xs text-gray-500 mb-4 line-clamp-2 leading-relaxed">
                               {vendor.description}
                             </p>
                           )}
 
-                          {/* View Profile Button */}
-                          <Button asChild className="w-full">
+                          {vendor.pricing && (
+                            <p className="text-xs font-semibold text-primary mb-4">{vendor.pricing}</p>
+                          )}
+
+                          <Button asChild className="w-full rounded-xl h-9 text-sm">
                             <Link href={`/vendors/${vendor.id}`}>View Profile</Link>
                           </Button>
                         </div>

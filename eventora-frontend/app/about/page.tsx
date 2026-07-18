@@ -92,13 +92,14 @@ export default function AboutPage() {
       <Header />
       <main className="flex-1">
         {/* Hero */}
-        <section className="bg-gradient-to-b from-primary/10 to-transparent py-16 md:py-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">About Eventora</h1>
-            <p className="text-xl text-muted-foreground mb-4">
+        <section className="py-20 md:py-28 border-b border-gray-100">
+          <div className="max-w-3xl mx-auto px-6 text-center">
+            <p className="text-primary text-[10px] font-semibold tracking-[0.3em] uppercase mb-5">Our Story</p>
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">About Eventora</h1>
+            <p className="text-lg text-gray-500 mb-3 leading-relaxed">
               Sri Lanka&apos;s first dedicated event vendor marketplace — built in 2026 to make planning your perfect event simple, transparent, and stress-free.
             </p>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-base text-gray-400">
               One platform. Hundreds of verified vendors. Every celebration you can imagine.
             </p>
           </div>

@@ -26,7 +26,7 @@ const CATEGORY_CONFIG: Record<string, { icon: typeof Camera; image: string }> = 
   photography: { icon: Camera, image: 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=600&q=85' },
   catering:    { icon: Utensils, image: 'https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=85' },
   decoration:  { icon: Palette, image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=85' },
-  venues:      { icon: Users, image: 'https://images.unsplash.com/photo-1519167758481-83f550bb8d28?w=600&q=85' },
+  venues:      { icon: Users, image: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=600&q=85' },
   music:       { icon: Music, image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=85' },
 }
 
@@ -156,7 +156,7 @@ export default function HomePage() {
                 const Icon = s.icon
                 return (
                   <div key={s.n} className="bg-white rounded-2xl p-8 border border-gray-100 hover:border-primary/20 hover:shadow-lg transition-all duration-300 group">
-                    <span className="text-7xl font-bold leading-none block mb-3 transition-colors" style={{fontFamily:'var(--font-heading)',color:'rgba(37,99,235,0.07)'}}>{s.n}</span>
+                    <span className="text-7xl font-bold leading-none block mb-3 transition-all duration-500 group-hover:scale-110 group-hover:translate-x-1 origin-left" style={{fontFamily:'var(--font-heading)',color:'rgba(37,99,235,0.18)'}}>{s.n}</span>
                     <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                       <Icon className="w-5 h-5 text-white" />
                     </div>
@@ -238,7 +238,7 @@ export default function HomePage() {
             <p className="text-gray-400 mb-10 leading-relaxed">Join thousands of happy customers who made their celebrations unforgettable.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/register" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-primary hover:bg-primary/90 text-white font-semibold text-sm rounded-xl transition-colors shadow-md">
-                Get Started Free <ArrowRight className="w-4 h-4" />
+                Get Started <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="/vendors" className="inline-flex items-center justify-center px-8 py-3.5 border border-gray-200 text-gray-600 hover:bg-gray-100 font-medium text-sm rounded-xl transition-colors">
                 Browse Vendors

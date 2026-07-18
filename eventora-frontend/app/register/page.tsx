@@ -244,14 +244,14 @@ export default function RegisterPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 flex items-center justify-center py-16 px-4 min-h-[80vh]">
         <div className="max-w-md w-full">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Create Account</h1>
-            <p className="text-muted-foreground">Join Eventora today</p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Create Account</h1>
+            <p className="text-muted-foreground text-sm">Join Eventora today</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 bg-card p-8 rounded-lg border border-border" autoComplete="off">
+          <form onSubmit={handleSubmit} className="space-y-4 bg-white p-8 rounded-2xl border border-gray-100 shadow-sm" autoComplete="off">
             {/* Error Message */}
             {error && (
               <div className="flex gap-3 p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
