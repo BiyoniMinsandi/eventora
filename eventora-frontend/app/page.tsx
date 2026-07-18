@@ -106,12 +106,12 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
 
           <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white">
-            <p className="text-sm font-semibold tracking-[0.25em] uppercase text-blue-300 mb-5">
+            <p className="text-sm font-semibold tracking-[0.25em] uppercase text-primary/60 mb-5">
               Sri Lanka's Premier Event Marketplace
             </p>
             <h1 className="text-5xl md:text-7xl font-bold leading-[1.1] mb-6 drop-shadow-xl">
               Your Perfect Event<br />
-              <span className="text-blue-400">Starts Here</span>
+              <span className="text-primary/80">Starts Here</span>
             </h1>
             <p className="text-lg md:text-xl text-white/75 mb-10 max-w-2xl mx-auto leading-relaxed">
               Discover and book verified photographers, caterers, decorators, venues and musicians — all in one place.
@@ -130,7 +130,7 @@ export default function HomePage() {
               </div>
               <button
                 type="submit"
-                className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors flex items-center gap-2"
+                className="h-14 px-8 bg-primary hover:bg-primary/90 text-white font-semibold text-sm transition-colors flex items-center gap-2"
               >
                 Search <ArrowRight className="w-4 h-4" />
               </button>
@@ -157,7 +157,7 @@ export default function HomePage() {
         <section className="py-24 bg-white">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-14">
-              <p className="text-blue-600 text-sm font-semibold tracking-widest uppercase mb-3">Explore</p>
+              <p className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">Explore</p>
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900">Browse by Category</h2>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -182,7 +182,7 @@ export default function HomePage() {
         <section className="py-24 bg-gray-50">
           <div className="max-w-5xl mx-auto px-6">
             <div className="text-center mb-16">
-              <p className="text-blue-600 text-sm font-semibold tracking-widest uppercase mb-3">Simple Process</p>
+              <p className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">Simple Process</p>
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900">How It Works</h2>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
@@ -195,7 +195,7 @@ export default function HomePage() {
                 return (
                   <div key={s.n} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col items-start">
                     <span className="text-5xl font-black text-blue-50 leading-none mb-4 select-none">{s.n}</span>
-                    <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center mb-4">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
                     <h3 className="text-lg font-bold text-gray-900 mb-2">{s.title}</h3>
@@ -233,14 +233,14 @@ export default function HomePage() {
                 return (
                   <div key={f.label} className="flex flex-col items-center gap-2">
                     <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-blue-300" />
+                      <Icon className="w-5 h-5 text-primary/60" />
                     </div>
                     <span className="text-sm font-medium text-white/80">{f.label}</span>
                   </div>
                 )
               })}
             </div>
-            <Button size="lg" asChild className="bg-white text-blue-700 hover:bg-blue-50 font-semibold px-8">
+            <Button size="lg" asChild className="bg-white text-primary hover:bg-primary/5 font-semibold px-8">
               <Link href="/vendors">Explore Vendors <ArrowRight className="w-4 h-4 ml-2" /></Link>
             </Button>
           </div>
@@ -251,7 +251,7 @@ export default function HomePage() {
           <section className="py-24 bg-white">
             <div className="max-w-7xl mx-auto px-6">
               <div className="text-center mb-14">
-                <p className="text-blue-600 text-sm font-semibold tracking-widest uppercase mb-3">Testimonials</p>
+                <p className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">Testimonials</p>
                 <h2 className="text-4xl md:text-5xl font-bold text-gray-900">What Our Customers Say</h2>
               </div>
               <div className="grid md:grid-cols-3 gap-6">
@@ -264,7 +264,7 @@ export default function HomePage() {
                     </div>
                     <p className="text-gray-700 text-sm leading-relaxed mb-6 flex-1 line-clamp-4">"{r.comment}"</p>
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                         {r.customerName.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -285,7 +285,7 @@ export default function HomePage() {
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-5">Ready to Plan Your Event?</h2>
             <p className="text-gray-500 text-lg mb-10">Join thousands of happy customers who made their celebrations unforgettable.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild className="bg-blue-600 hover:bg-blue-700 text-white px-10 h-12 text-base font-semibold">
+              <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-white px-10 h-12 text-base font-semibold">
                 <Link href="/register">Get Started Free</Link>
               </Button>
               <Button size="lg" variant="outline" asChild className="border-gray-300 text-gray-700 hover:bg-gray-100 px-10 h-12 text-base">
