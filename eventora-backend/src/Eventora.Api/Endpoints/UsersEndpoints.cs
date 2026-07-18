@@ -105,8 +105,6 @@ internal static class UsersEndpoints
             var user = await users.GetByIdAsync(id, ct);
             if (user is null) return Results.NotFound(new { message = "User not found" });
 
-            // RejectedAt doubles as the suspension flag to avoid adding a separate boolean.
-            // Login is blocked for any account where RejectedAt is set.
             if (user.RejectedAt is null)
             {
                 user.RejectedAt = DateTimeOffset.UtcNow;
@@ -121,5 +119,29 @@ internal static class UsersEndpoints
             await users.UpdateAsync(user, ct);
             return Results.Ok(UserDtoMapping.ToDto(user));
         });
+
+        admin.MapPost("/users/{id}/suspend", async (string id, SuspendUserRequest req, IUserRepository users, CancellationToken ct) =>
+        {
+            var user = await users.GetByIdAsync(id, ct);
+            if (user is null) return Results.NotFound(new { message = "User not found" });
+
+            user.RejectedAt = DateTimeOffset.UtcNow;
+            user.RejectionReason = string.IsNullOrWhiteSpace(req.Reason) ? "Suspended by admin" : req.Reason.Trim();
+            await users.UpdateAsync(user, ct);
+            return Results.Ok(UserDtoMapping.ToDto(user));
+        });
+
+        admin.MapPost("/users/{id}/unsuspend", async (string id, IUserRepository users, CancellationToken ct) =>
+        {
+            var user = await users.GetByIdAsync(id, ct);
+            if (user is null) return Results.NotFound(new { message = "User not found" });
+
+            user.RejectedAt = null;
+            user.RejectionReason = null;
+            await users.UpdateAsync(user, ct);
+            return Results.Ok(UserDtoMapping.ToDto(user));
+        });
     }
 }
+
+public sealed record SuspendUserRequest(string? Reason);

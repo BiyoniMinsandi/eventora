@@ -1,6 +1,8 @@
 using Eventora.Api.Endpoints;
 using Eventora.Api.Hubs;
 using Eventora.Api.Seed;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,8 +41,7 @@ builder.Services
             ClockSkew = TimeSpan.FromMinutes(2),
         };
 
-        // SignalR WebSocket connections send the token as a query param because browsers
-        // cannot set Authorization headers on WebSocket upgrade requests.
+        // SignalR WebSocket connections send the token as a query param
         options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
         {
             OnMessageReceived = ctx =>
@@ -69,15 +70,39 @@ builder.Services
 
 builder.Services.AddHostedService<MongoSeedHostedService>();
 
+// CORS — origins are read from config so there's no deployment-time editing required
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+                     ?? ["http://localhost:3000", "http://localhost:3001"];
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("FrontendDev", p =>
-        p.WithOrigins(
-                "http://localhost:3000",
-                "http://localhost:3001")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials());
+    options.AddPolicy("AllowFrontend", p =>
+        p.WithOrigins(allowedOrigins)
+         .AllowAnyHeader()
+         .AllowAnyMethod()
+         .AllowCredentials());
+});
+
+// Rate limiting — protect auth endpoints from brute-force attacks
+builder.Services.AddRateLimiter(opts =>
+{
+    opts.AddFixedWindowLimiter("auth", o =>
+    {
+        o.PermitLimit = 10;
+        o.Window = TimeSpan.FromMinutes(1);
+        o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        o.QueueLimit = 0;
+    });
+
+    opts.AddFixedWindowLimiter("api", o =>
+    {
+        o.PermitLimit = 300;
+        o.Window = TimeSpan.FromMinutes(1);
+        o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        o.QueueLimit = 5;
+    });
+
+    opts.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
 // Health checks
@@ -85,31 +110,31 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseCors("FrontendDev");
+app.UseCors("AllowFrontend");
 
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
 
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
 // Basic endpoints
-app.MapGet("/", () => Results.Ok(new { name = "Eventora API", status = "ok" }))
+app.MapGet("/", () => Results.Ok(new { name = "Eventora API", version = "1.0", status = "ok" }))
     .WithName("Root");
 
 app.MapHealthChecks("/health");
 
-// --- Auth endpoints (matches frontend: /api/auth/register + /api/auth/login)
-var authGroup = app.MapGroup("/api/auth").WithTags("Auth");
+// --- Auth endpoints
+var authGroup = app.MapGroup("/api/auth").WithTags("Auth").RequireRateLimiting("auth");
 
 authGroup.MapPost("/register", async (
         Eventora.Application.Contracts.Auth.RegisterRequest req,
@@ -123,7 +148,6 @@ authGroup.MapPost("/register", async (
             return Results.BadRequest(new { message = "Invalid role" });
         }
 
-        // Business rule: only customers/vendors can self-register.
         if (role == Eventora.Domain.Users.UserRole.Admin)
         {
             return Results.BadRequest(new { message = "Admin registration is not allowed" });
@@ -155,7 +179,6 @@ authGroup.MapPost("/register", async (
 
         await users.CreateAsync(user, ct);
 
-        // Vendors can register but cannot log in until approved.
         if (user.Role == Eventora.Domain.Users.UserRole.Vendor && !user.Approved)
         {
             return Results.Ok(new
@@ -193,7 +216,6 @@ authGroup.MapPost("/login", async (
             return Results.Json(new { message = "Invalid email or password" }, statusCode: StatusCodes.Status401Unauthorized);
         }
 
-        // Block suspended/rejected accounts.
         if (user.RejectedAt is not null)
         {
             var reason = string.IsNullOrWhiteSpace(user.RejectionReason) ? "Account is suspended" : user.RejectionReason;
@@ -205,7 +227,6 @@ authGroup.MapPost("/login", async (
             return Results.Json(new { message = "Invalid email or password" }, statusCode: StatusCodes.Status401Unauthorized);
         }
 
-        // Business rule: vendors require admin approval.
         if (user.Role == Eventora.Domain.Users.UserRole.Vendor && !user.Approved)
         {
             return Results.Json(new { message = "Your vendor account is pending admin approval" }, statusCode: StatusCodes.Status401Unauthorized);
@@ -228,7 +249,7 @@ authGroup.MapPost("/login", async (
 // --- SignalR hub
 app.MapHub<ChatHub>("/hubs/chat");
 
-// --- Public platform statistics (used by About page)
+// --- Public platform statistics
 app.MapGet("/api/stats", async (
     Eventora.Application.Abstractions.Persistence.IUserRepository users,
     Eventora.Application.Abstractions.Persistence.IBookingRepository bookings,
@@ -266,5 +287,7 @@ app.MapMessagingEndpoints();
 app.MapReviewsEndpoints();
 app.MapDisputesEndpoints();
 app.MapNotificationsEndpoints();
+app.MapPaymentEndpoints();
+app.MapAdminSettingsEndpoints();
 
 app.Run();

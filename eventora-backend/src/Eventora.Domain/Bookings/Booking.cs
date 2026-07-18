@@ -34,8 +34,20 @@ public sealed class Booking : EntityBase
 
     public BookingStatus Status { get; set; } = BookingStatus.Pending;
 
-    // Vendor's response when accepting/rejecting
     public string? VendorResponseNote { get; set; }
+
+    // ── Payment fields ────────────────────────────────────────────────────────
+
+    /// <summary>ID of the linked Payment document, populated when checkout is initiated.</summary>
+    public string? PaymentId { get; set; }
+
+    /// <summary>Payment status mirrored here for quick reads without a second collection lookup.</summary>
+    public string PaymentStatus { get; set; } = "unpaid";
+
+    /// <summary>Amount agreed at booking time (from Budget field, converted by admin).</summary>
+    public long? AmountInCents { get; set; }
+
+    public string Currency { get; set; } = "usd";
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 

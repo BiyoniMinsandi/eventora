@@ -23,7 +23,7 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import Loading from './loading'
 import type { User } from '@/lib/auth'
-import { getVendors, getVendorReviews } from '@/lib/data'
+import { getVendors, getVendorReviews, getPublicCategories, type PublicCategory } from '@/lib/data'
 
 export default function VendorBrowsePage() {
   const searchParams = useSearchParams()
@@ -36,6 +36,7 @@ export default function VendorBrowsePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [locationQuery, setLocationQuery] = useState('')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [dbCategories, setDbCategories] = useState<PublicCategory[]>([])
 
   const PRICE_BOUNDS: Record<string, { min?: number; max?: number }> = {
     all: {},
@@ -105,13 +106,13 @@ export default function VendorBrowsePage() {
     }
   }, [vendors])
 
+  useEffect(() => {
+    getPublicCategories().then(setDbCategories).catch(() => {})
+  }, [])
+
   const categories = [
     { value: 'all', label: 'All Categories' },
-    { value: 'photography', label: 'Photography' },
-    { value: 'catering', label: 'Catering' },
-    { value: 'decoration', label: 'Decoration' },
-    { value: 'venues', label: 'Venues' },
-    { value: 'music', label: 'Music & Entertainment' },
+    ...dbCategories.map((c) => ({ value: c.slug, label: c.name })),
   ]
 
   // Backend handles all filtering including text search; no client-side pass needed.

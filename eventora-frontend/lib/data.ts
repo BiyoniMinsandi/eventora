@@ -21,7 +21,11 @@ export interface Booking {
   budget?: string
   specialRequests?: string
   status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled'
-  vendorResponseNote?: string // Vendor's response when accepting/rejecting
+  vendorResponseNote?: string
+  paymentId?: string
+  paymentStatus: 'unpaid' | 'pending' | 'processing' | 'paid' | 'refunded' | 'failed'
+  amountInCents?: number
+  currency: string
   createdAt: string
   updatedAt: string
 }
@@ -507,4 +511,61 @@ export async function changePassword(currentPassword: string, newPassword: strin
     method: 'POST',
     body: { currentPassword, newPassword },
   })
+}
+
+// ── Payments ─────────────────────────────────────────────────────────────────
+
+export interface Payment {
+  id: string
+  bookingId: string
+  amountInCents: number
+  currency: string
+  status: 'pending' | 'processing' | 'paid' | 'failed' | 'refunded' | 'cancelled'
+  createdAt: string
+}
+
+export async function createCheckoutSession(bookingId: string, amountInCents: number): Promise<{ checkoutUrl: string; sessionId: string; paymentId: string }> {
+  return await apiFetch(`/api/payments/checkout`, {
+    method: 'POST',
+    body: { bookingId, amountInCents },
+  })
+}
+
+export async function getBookingPayment(bookingId: string): Promise<{ status: string; payment: Payment | null }> {
+  return await apiFetch(`/api/payments/booking/${bookingId}`)
+}
+
+export async function verifyPaymentSession(sessionId: string): Promise<{ paymentStatus: string; bookingId: string; amountInCents: number; currency: string }> {
+  return await apiFetch(`/api/payments/verify-session`, {
+    method: 'POST',
+    body: { sessionId },
+  })
+}
+
+export async function getMyPayments(): Promise<Payment[]> {
+  return await apiFetch<Payment[]>(`/api/payments/my`)
+}
+
+// ── Public categories ─────────────────────────────────────────────────────────
+
+export interface PublicCategory {
+  id: string
+  name: string
+  slug: string
+  active: boolean
+}
+
+export async function getPublicCategories(): Promise<PublicCategory[]> {
+  try {
+    return await apiFetch<PublicCategory[]>(`/api/categories`, { auth: false })
+  } catch {
+    // Fall back to defaults if the endpoint is unavailable
+    return [
+      { id: '1', name: 'Photographers', slug: 'photography', active: true },
+      { id: '2', name: 'Caterers', slug: 'catering', active: true },
+      { id: '3', name: 'Decorators', slug: 'decoration', active: true },
+      { id: '4', name: 'Venues', slug: 'venues', active: true },
+      { id: '5', name: 'Musicians', slug: 'music', active: true },
+    ]
+  }
 }

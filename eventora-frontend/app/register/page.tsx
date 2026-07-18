@@ -320,6 +320,9 @@ export default function RegisterPage() {
                   )}
                 </button>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Must be 6+ characters with uppercase, lowercase and a number. Example: <span className="font-mono">Test123</span>
+              </p>
             </div>
 
             {/* Confirm Password */}

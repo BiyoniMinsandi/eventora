@@ -39,4 +39,7 @@ internal sealed class MongoReviewRepository(MongoCollections collections) : IRev
         review.CreatedAt = DateTimeOffset.UtcNow;
         await _reviews.InsertOneAsync(review, cancellationToken: ct);
     }
+
+    public async Task DeleteAsync(string id, CancellationToken ct)
+        => await _reviews.DeleteOneAsync(r => r.Id == id, ct);
 }

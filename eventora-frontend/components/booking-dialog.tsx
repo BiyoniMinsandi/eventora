@@ -73,6 +73,8 @@ export function BookingDialog({ vendorId, vendorName, vendorBusinessName, vendor
         budget: formData.budget,
         specialRequests: formData.specialRequests,
         status: 'pending',
+        paymentStatus: 'unpaid',
+        currency: 'usd',
       })
 
       // Notifications are created by the server as the source of truth.

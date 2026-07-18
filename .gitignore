@@ -28,3 +28,7 @@ yarn-error.log*
 .env*
 .DS_Store
 Thumbs.db
+
+# Local dev secrets (never commit)
+appsettings.Development.json
+eventora-frontend/.env.local

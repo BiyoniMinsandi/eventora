@@ -1,0 +1,55 @@
+version: '3.9'
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: eventora
+    ports:
+      - "27017:27017"
+
+  api:
+    build:
+      context: ./eventora-backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Mongo__ConnectionString: mongodb://mongo:27017
+      Mongo__Database: eventora
+      Jwt__Issuer: Eventora
+      Jwt__Audience: Eventora
+      Jwt__SigningKey: ${JWT_SIGNING_KEY}
+      Jwt__ExpiryHours: "24"
+      Email__SmtpHost: ${SMTP_HOST:-smtp.gmail.com}
+      Email__SmtpPort: "587"
+      Email__SenderEmail: ${SMTP_EMAIL:-}
+      Email__SenderPassword: ${SMTP_PASSWORD:-}
+      Email__SenderName: Eventora
+      Email__Enabled: ${EMAIL_ENABLED:-false}
+      Azure__StorageConnectionString: ${AZURE_STORAGE_CONNECTION_STRING:-}
+      Azure__ImageContainerName: ${AZURE_IMAGE_CONTAINER:-vendor-images}
+      Azure__DocumentContainerName: ${AZURE_DOCUMENT_CONTAINER:-vendor-documents}
+      Stripe__PublishableKey: ${STRIPE_PUBLISHABLE_KEY:-}
+      Stripe__SecretKey: ${STRIPE_SECRET_KEY:-}
+      Stripe__WebhookSecret: ${STRIPE_WEBHOOK_SECRET:-}
+      Stripe__Currency: ${STRIPE_CURRENCY:-usd}
+      App__FrontendUrl: ${FRONTEND_URL:-http://localhost:3000}
+      App__BackendUrl: ${BACKEND_URL:-http://localhost:8080}
+      Cors__AllowedOrigins__0: ${FRONTEND_URL:-http://localhost:3000}
+      Seed__Enabled: ${SEED_ENABLED:-true}
+      Seed__AdminEmail: ${SEED_ADMIN_EMAIL:-admin@example.com}
+      Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:-Demo123}
+      Seed__DemoCustomerEmail: customer@example.com
+      Seed__DemoVendorEmail: vendor@example.com
+      Seed__DemoPassword: ${SEED_DEMO_PASSWORD:-Demo123}
+
+volumes:
+  mongo_data:

@@ -11,4 +11,5 @@ public interface IReviewRepository
     Task<IReadOnlyList<Review>> GetForVendorAsync(string vendorId, CancellationToken ct);
     Task<IReadOnlyList<Review>> GetRecentAsync(int limit, CancellationToken ct);
     Task CreateAsync(Review review, CancellationToken ct);
+    Task DeleteAsync(string id, CancellationToken ct);
 }

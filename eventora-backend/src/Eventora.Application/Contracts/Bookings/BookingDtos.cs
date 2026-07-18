@@ -27,10 +27,14 @@ public sealed record BookingDto(
     string? SpecialRequests,
     string Status,
     string? VendorResponseNote,
+    string? PaymentId,
+    string PaymentStatus,
+    long? AmountInCents,
+    string Currency,
     string CreatedAt,
     string UpdatedAt);
 
-public sealed record BookingDecisionRequest([property: Required] string VendorResponseNote);
+public sealed record BookingDecisionRequest(string? VendorResponseNote);
 
 public static class BookingDtoMapping
 {
@@ -61,6 +65,10 @@ public static class BookingDtoMapping
             booking.SpecialRequests,
             ToApiStatus(booking.Status),
             booking.VendorResponseNote,
+            booking.PaymentId,
+            booking.PaymentStatus,
+            booking.AmountInCents,
+            booking.Currency,
             booking.CreatedAt.ToString("O"),
             booking.UpdatedAt.ToString("O"));
     }

@@ -88,5 +88,47 @@ internal static class ReviewsEndpoints
 
             return Results.Ok(ReviewDtoMapping.ToDto(review));
         }).RequireAuthorization("CustomerOnly");
+
+        // ── Admin review management ──────────────────────────────────────────
+        var adminReviews = app.MapGroup("/api/admin/reviews").WithTags("Admin").RequireAuthorization("AdminOnly");
+
+        adminReviews.MapGet("", async (IReviewRepository reviews, IUserRepository users, CancellationToken ct) =>
+        {
+            var list = await reviews.GetRecentAsync(500, ct);
+            var dtos = new List<object>();
+            foreach (var r in list)
+            {
+                var vendor = await users.GetByIdAsync(r.VendorId, ct);
+                dtos.Add(new
+                {
+                    id = r.Id,
+                    bookingId = r.BookingId,
+                    customerId = r.CustomerId,
+                    customerName = r.CustomerName,
+                    vendorId = r.VendorId,
+                    vendorName = vendor?.BusinessName ?? vendor?.FullName ?? "Vendor",
+                    rating = r.Rating,
+                    comment = r.Comment,
+                    createdAt = r.CreatedAt.ToString("O"),
+                });
+            }
+            return Results.Ok(dtos);
+        });
+
+        adminReviews.MapGet("/booking/{bookingId}", async (string bookingId, IReviewRepository reviews, CancellationToken ct) =>
+        {
+            var review = await reviews.GetByBookingIdAsync(bookingId, ct);
+            if (review is null) return Results.NotFound(new { message = "No review found for this booking" });
+            return Results.Ok(ReviewDtoMapping.ToDto(review));
+        });
+
+        adminReviews.MapDelete("/{id}", async (string id, IReviewRepository reviews, CancellationToken ct) =>
+        {
+            var all = await reviews.GetRecentAsync(500, ct);
+            var review = all.FirstOrDefault(r => r.Id == id);
+            if (review is null) return Results.NotFound(new { message = "Review not found" });
+            await reviews.DeleteAsync(id, ct);
+            return Results.Ok(new { success = true, message = "Review deleted" });
+        });
     }
 }

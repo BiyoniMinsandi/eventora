@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
+using MongoDB.Bson;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -75,6 +76,9 @@ public static IServiceCollection AddEventoraInfrastructure(
         services.AddSingleton<IDisputeRepository, MongoDisputeRepository>();
         services.AddSingleton<IDisputeMessageRepository, MongoDisputeMessageRepository>();
         services.AddSingleton<INotificationRepository, MongoNotificationRepository>();
+        services.AddSingleton<IPaymentRepository, MongoPaymentRepository>();
+        services.AddSingleton<IPlatformSettingsRepository, MongoPlatformSettingsRepository>();
+        services.AddSingleton<ICategoryRepository, MongoCategoryRepository>();
 
         return services;
     }

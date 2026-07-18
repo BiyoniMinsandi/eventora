@@ -20,9 +20,11 @@ import {
   getOrCreateConversation,
   getDisputeByBookingId,
   getReviewByBookingId,
+  createCheckoutSession,
 } from '@/lib/data'
 import { logoutUser } from '@/lib/auth'
 import { ReviewDialog } from '@/components/review-dialog'
+import { CreditCard, Loader2 } from 'lucide-react'
 
 export default function CustomerBookingsPage() {
   const { user } = useAuth()
@@ -30,6 +32,9 @@ export default function CustomerBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [hasActiveDisputeByBookingId, setHasActiveDisputeByBookingId] = useState<Record<string, boolean>>({})
   const [hasReviewByBookingId, setHasReviewByBookingId] = useState<Record<string, boolean>>({})
+  const [payingBookingId, setPayingBookingId] = useState<string | null>(null)
+  const [amountDialog, setAmountDialog] = useState<{ booking: Booking } | null>(null)
+  const [enteredAmount, setEnteredAmount] = useState('')
 
   useEffect(() => {
     if (!user) return
@@ -123,6 +128,38 @@ export default function CustomerBookingsPage() {
     router.push(`/customer/disputes?bookingId=${booking.id}`)
   }
 
+  const handlePayNow = async (booking: Booking) => {
+    if (!booking.amountInCents || booking.amountInCents <= 0) {
+      setEnteredAmount('')
+      setAmountDialog({ booking })
+      return
+    }
+    await initiateCheckout(booking.id, booking.amountInCents)
+  }
+
+  const initiateCheckout = async (bookingId: string, amountInCents: number) => {
+    try {
+      setPayingBookingId(bookingId)
+      const { checkoutUrl } = await createCheckoutSession(bookingId, amountInCents)
+      window.location.href = checkoutUrl
+    } catch (e: any) {
+      alert(e?.message || 'Failed to initiate payment. Please try again.')
+      setPayingBookingId(null)
+    }
+  }
+
+  const handleAmountConfirm = async () => {
+    if (!amountDialog) return
+    const amount = parseFloat(enteredAmount)
+    if (isNaN(amount) || amount <= 0) {
+      alert('Please enter a valid amount greater than 0.')
+      return
+    }
+    const amountInCents = Math.round(amount * 100)
+    setAmountDialog(null)
+    await initiateCheckout(amountDialog.booking.id, amountInCents)
+  }
+
   const handleReviewSubmitted = () => {
     // Refresh bookings to reflect review status
     if (!user) return
@@ -142,6 +179,39 @@ export default function CustomerBookingsPage() {
   return (
     <div className="flex h-screen bg-background">
       <Sidebar userRole="customer" userName={user?.fullName || 'Customer'} onLogout={handleLogout} />
+
+      {/* Amount entry dialog */}
+      {amountDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card border border-border rounded-xl p-6 w-full max-w-sm shadow-xl">
+            <h2 className="text-lg font-bold mb-1">Enter Payment Amount</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              The vendor has not set a price yet. Enter the agreed amount to proceed.
+            </p>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-sm font-medium text-muted-foreground">USD $</span>
+              <input
+                type="number"
+                min="1"
+                step="0.01"
+                placeholder="e.g. 150.00"
+                value={enteredAmount}
+                onChange={(e) => setEnteredAmount(e.target.value)}
+                className="flex-1 px-3 py-2 rounded-md border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1" onClick={() => setAmountDialog(null)}>
+                Cancel
+              </Button>
+              <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" onClick={handleAmountConfirm}>
+                Proceed to Pay
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="flex-1 overflow-auto">
         <div className="p-8">
@@ -230,6 +300,26 @@ export default function CustomerBookingsPage() {
                                 View Details
                               </Link>
                             </Button>
+                            {booking.status === 'accepted' && booking.paymentStatus !== 'paid' && (
+                              <Button
+                                size="sm"
+                                className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+                                onClick={() => handlePayNow(booking)}
+                                disabled={payingBookingId === booking.id}
+                              >
+                                {payingBookingId === booking.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <CreditCard className="w-4 h-4" />
+                                )}
+                                {payingBookingId === booking.id ? 'Redirecting…' : 'Pay Now'}
+                              </Button>
+                            )}
+                            {booking.status === 'accepted' && booking.paymentStatus === 'paid' && (
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 text-center">
+                                ✓ Paid
+                              </span>
+                            )}
                             {(booking.status === 'accepted' || booking.status === 'completed') && (
                               <Button
                                 size="sm"

@@ -1,0 +1,11 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "regions": ["sin1"],
+  "env": {
+    "NEXT_PUBLIC_API_URL": "@eventora_api_url",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "@eventora_stripe_publishable_key"
+  }
+}

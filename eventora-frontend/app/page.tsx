@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { apiFetch } from '@/lib/api'
+import { getPublicCategories } from '@/lib/data'
 import {
   Camera,
   Users,
@@ -37,11 +38,24 @@ interface RecentReview {
   createdAt: string
 }
 
+const CATEGORY_ICONS: Record<string, typeof Camera> = {
+  photography: Camera,
+  catering: Utensils,
+  decoration: Palette,
+  venues: Users,
+  music: Music,
+}
+
 export default function HomePage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [reviews, setReviews] = useState<RecentReview[]>([])
   const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [dbCategories, setDbCategories] = useState<Array<{ id: string; name: string; slug: string }>>([])
+
+  useEffect(() => {
+    getPublicCategories().then(cats => setDbCategories(cats)).catch(() => {})
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -68,14 +82,19 @@ export default function HomePage() {
     }
   }
 
-  // Category shortcuts (kept as data so UI stays simple to edit).
-  const categories = [
-    { icon: Camera, label: 'Photographers', href: '/vendors?category=photography' },
-    { icon: Utensils, label: 'Caterers', href: '/vendors?category=catering' },
-    { icon: Palette, label: 'Decorators', href: '/vendors?category=decoration' },
-    { icon: Users, label: 'Venues', href: '/vendors?category=venues' },
-    { icon: Music, label: 'Musicians', href: '/vendors?category=music' },
-  ]
+  const categories = dbCategories.length > 0
+    ? dbCategories.map(c => ({
+        icon: CATEGORY_ICONS[c.slug] ?? Camera,
+        label: c.name,
+        href: `/vendors?category=${c.slug}`,
+      }))
+    : [
+        { icon: Camera, label: 'Photographers', href: '/vendors?category=photography' },
+        { icon: Utensils, label: 'Caterers', href: '/vendors?category=catering' },
+        { icon: Palette, label: 'Decorators', href: '/vendors?category=decoration' },
+        { icon: Users, label: 'Venues', href: '/vendors?category=venues' },
+        { icon: Music, label: 'Musicians', href: '/vendors?category=music' },
+      ]
 
   const steps = [
     {

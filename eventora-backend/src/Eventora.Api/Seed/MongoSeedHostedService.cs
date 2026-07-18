@@ -3,6 +3,7 @@ using Eventora.Domain.Bookings;
 using Eventora.Domain.Messaging;
 using Eventora.Domain.Notifications;
 using Eventora.Domain.Reviews;
+using Eventora.Domain.Settings;
 using Eventora.Domain.Users;
 using Eventora.Infrastructure.Mongo;
 using Microsoft.Extensions.Options;
@@ -1328,8 +1329,30 @@ public sealed class MongoSeedHostedService : IHostedService
                 Read = true, CreatedAt = DateTimeOffset.UtcNow.AddDays(-30) },
         ], ct);
 
+        // ── Categories ────────────────────────────────────────────────────────
+        var categories = db.GetCollection<Category>("categories");
+        var defaultCategories = new[]
+        {
+            new Category { Id = "cat_photography", Name = "Photographers", Slug = "photography", Active = true },
+            new Category { Id = "cat_catering",    Name = "Caterers",      Slug = "catering",    Active = true },
+            new Category { Id = "cat_decoration",  Name = "Decorators",    Slug = "decoration",  Active = true },
+            new Category { Id = "cat_venues",      Name = "Venues",        Slug = "venues",      Active = true },
+            new Category { Id = "cat_music",       Name = "Musicians",     Slug = "music",       Active = true },
+            new Category { Id = "cat_beauty",      Name = "Beauty & Makeup", Slug = "beauty",    Active = true },
+        };
+
+        foreach (var cat in defaultCategories)
+        {
+            var existingCat = await categories.Find(c => c.Id == cat.Id).FirstOrDefaultAsync(ct);
+            if (existingCat is null)
+            {
+                cat.CreatedAt = DateTimeOffset.UtcNow;
+                await categories.InsertOneAsync(cat, cancellationToken: ct);
+            }
+        }
+
         _logger.LogInformation(
-            "Seed complete — 1 admin, 4 customers, 16 vendors (14 approved + 2 pending), 18 bookings, 12 reviews, 3 conversations, 10 notifications.");
+            "Seed complete — 1 admin, 4 customers, 16 vendors (14 approved + 2 pending), 18 bookings, 12 reviews, 3 conversations, 10 notifications, 6 categories.");
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
