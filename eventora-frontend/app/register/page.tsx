@@ -300,7 +300,7 @@ export default function RegisterPage() {
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="Enter password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pr-10"
@@ -320,9 +320,7 @@ export default function RegisterPage() {
                   )}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Must be 6+ characters with uppercase, lowercase and a number. Example: <span className="font-mono">Test123</span>
-              </p>
+              <p className="text-xs text-muted-foreground">Must be at least 6 characters.</p>
             </div>
 
             {/* Confirm Password */}
@@ -333,7 +331,7 @@ export default function RegisterPage() {
               <Input
                 id="confirmPassword"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
+                placeholder="Confirm password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={loading}
