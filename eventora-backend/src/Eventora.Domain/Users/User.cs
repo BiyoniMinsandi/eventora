@@ -30,6 +30,9 @@ public sealed class User : EntityBase
     /// <summary>Photo URLs shown in the vendor's portfolio gallery.</summary>
     public List<string> Photos { get; set; } = [];
 
+    /// <summary>Video URLs shown in the vendor's portfolio gallery.</summary>
+    public List<string> Videos { get; set; } = [];
+
     public List<string> Services { get; set; } = [];
 
     /// <summary>Human-readable pricing description, e.g. "Rs. 25,000 – 80,000".</summary>

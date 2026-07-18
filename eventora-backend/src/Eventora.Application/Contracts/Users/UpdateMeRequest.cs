@@ -11,6 +11,7 @@ public sealed record UpdateMeRequest(
     string? Location,
     string? Description,
     List<string>? Photos,
+    List<string>? Videos,
     List<string>? Services,
     string? Pricing,
     int? PriceMin,

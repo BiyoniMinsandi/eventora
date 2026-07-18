@@ -6,20 +6,27 @@
  */
 
 import Image from 'next/image'
-
-// Other imports...
 import Link from 'next/link'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Star, MapPin, Phone, Mail, ArrowLeft, Calendar, AlertCircle } from 'lucide-react'
+import { Star, MapPin, Phone, Mail, ArrowLeft, AlertCircle } from 'lucide-react'
 import { BookingDialog } from '@/components/booking-dialog'
 import { getVendorById, getVendors, getVendorReviews } from '@/lib/data'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import type { User } from '@/lib/auth'
+
+const CATEGORY_FALLBACKS: Record<string, string> = {
+  photography: 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=1600&q=85',
+  catering:    'https://images.unsplash.com/photo-1555244162-803834f70033?w=1600&q=85',
+  decoration:  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=85',
+  venues:      'https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=1600&q=85',
+  music:       'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1600&q=85',
+}
+const DEFAULT_HERO = 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=1600&q=85'
 
 export default function VendorProfilePage() {
   const params = useParams()
@@ -129,6 +136,7 @@ export default function VendorProfilePage() {
   }))
 
   const galleryPhotos = vendor.photos || []
+  const galleryVideos = vendor.videos || []
 
   return (
     <>
@@ -147,12 +155,32 @@ export default function VendorProfilePage() {
         </div>
 
         {/* Hero Section */}
-        <section className="relative w-full h-48 md:h-64 overflow-hidden bg-muted">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-muted to-accent/10" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-background/80 px-4 py-2 rounded-full border border-border text-sm font-medium">
-              Verified vendor
+        <section className="relative w-full h-64 md:h-80 overflow-hidden bg-muted">
+          <Image
+            src={
+              (vendor.photos && vendor.photos.length > 0)
+                ? vendor.photos[0]
+                : (CATEGORY_FALLBACKS[vendor.category?.toLowerCase() || ''] ?? DEFAULT_HERO)
+            }
+            alt={vendor.businessName || vendor.fullName}
+            fill
+            className="object-cover object-center"
+            unoptimized
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+          {vendor.approved && (
+            <div className="absolute top-4 right-4 bg-white/95 text-primary px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide shadow-sm">
+              ✓ Verified Vendor
             </div>
+          )}
+          <div className="absolute bottom-6 left-6 md:left-10">
+            <p className="text-white/60 text-[10px] font-semibold tracking-[0.3em] uppercase mb-2 capitalize">
+              {vendor.category || 'Vendor'}
+            </p>
+            <h1 className="text-2xl md:text-4xl font-bold text-white drop-shadow-md" style={{fontFamily:'var(--font-heading)'}}>
+              {vendor.businessName || vendor.fullName}
+            </h1>
           </div>
         </section>
 
@@ -161,9 +189,6 @@ export default function VendorProfilePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div className="flex-1">
-                <h1 className="text-4xl font-bold text-foreground mb-2">{vendor.businessName || vendor.fullName}</h1>
-                <p className="text-muted-foreground mb-3">{vendor.category || 'Vendor'}</p>
-
                 {/* Rating & Location */}
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center mb-4">
                   <div className="flex items-center gap-2">
@@ -283,26 +308,56 @@ export default function VendorProfilePage() {
 
               {/* Gallery Tab */}
               <TabsContent value="gallery" className="mt-6">
-                {galleryPhotos.length === 0 ? (
-                  <Card className="p-6">
-                    <p className="text-muted-foreground">No gallery photos yet.</p>
+                {galleryPhotos.length === 0 && galleryVideos.length === 0 ? (
+                  <Card className="p-12 text-center">
+                    <p className="text-muted-foreground">No gallery media yet.</p>
                   </Card>
                 ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {galleryPhotos.map((photo, index) => (
-                        <div
-                        key={`${vendor.id}-photo-${index}`}
-                        className="relative bg-muted rounded-lg h-40 overflow-hidden border border-border hover:border-primary transition cursor-pointer group"
-                      >
-                          <Image
-                            src={photo}
-                            alt={`Vendor photo ${index + 1}`}
-                            width={800}
-                            height={400}
-                            className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                          />
+                  <div className="space-y-6">
+                    {galleryPhotos.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-3">Photos</p>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          {galleryPhotos.map((photo, index) => (
+                            <div
+                              key={`${vendor.id}-photo-${index}`}
+                              className="relative bg-muted rounded-xl overflow-hidden border border-border hover:border-primary/40 hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                              style={{aspectRatio:'4/3'}}
+                            >
+                              <Image
+                                src={photo}
+                                alt={`Photo ${index + 1}`}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                unoptimized
+                              />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ))}
+                    )}
+                    {galleryVideos.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-3">Videos</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {galleryVideos.map((videoUrl, index) => (
+                            <div
+                              key={`${vendor.id}-video-${index}`}
+                              className="relative rounded-xl overflow-hidden border border-border bg-black"
+                              style={{aspectRatio:'16/9'}}
+                            >
+                              <video
+                                src={videoUrl}
+                                controls
+                                preload="metadata"
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </TabsContent>

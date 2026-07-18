@@ -34,6 +34,7 @@ export interface User {
   // Profile fields for vendors
   description?: string
   photos?: string[] // Base64 or URLs
+  videos?: string[] // Cloudinary video URLs
   services?: string[]
   pricing?: string
   priceMin?: number

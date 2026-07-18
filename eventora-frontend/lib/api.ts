@@ -68,3 +68,29 @@ export async function apiFetch<T>(
 
   return (await res.json()) as T
 }
+
+export async function uploadFile(path: string, file: File): Promise<{ url: string }> {
+  const baseUrl = getApiBaseUrl()
+  const url = `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`
+
+  const token = getStoredToken()
+  const headers: Record<string, string> = {}
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
+  const form = new FormData()
+  form.append('file', file)
+
+  const res = await fetch(url, { method: 'POST', headers, body: form })
+
+  if (!res.ok) {
+    const raw = await res.text().catch(() => '')
+    const parsed = raw ? tryReadJson(raw) : undefined
+    const message =
+      (parsed && typeof parsed === 'object' && 'message' in (parsed as any)
+        ? String((parsed as any).message)
+        : raw) || `Upload failed (${res.status})`
+    throw { status: res.status, message } as ApiError
+  }
+
+  return res.json()
+}

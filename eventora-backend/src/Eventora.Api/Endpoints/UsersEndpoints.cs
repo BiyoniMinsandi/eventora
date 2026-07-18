@@ -50,6 +50,7 @@ internal static class UsersEndpoints
                 user.Location = req.Location ?? user.Location;
                 user.Description = req.Description ?? user.Description;
                 user.Photos = req.Photos ?? user.Photos;
+                user.Videos = req.Videos ?? user.Videos;
                 user.Services = req.Services ?? user.Services;
                 user.Pricing = req.Pricing ?? user.Pricing;
                 user.PriceMin = req.PriceMin ?? user.PriceMin;
