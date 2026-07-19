@@ -249,7 +249,7 @@ export default function CustomerBookingsPage() {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
                               <h3 className="font-bold text-foreground text-lg">
-                                {booking.vendorName || 'Unknown Vendor'}
+                                {booking.vendorBusinessName || booking.vendorName || 'Unknown Vendor'}
                               </h3>
                               <div className="flex items-center gap-2">
                                 {getStatusIcon(booking.status)}

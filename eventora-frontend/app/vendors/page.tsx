@@ -169,16 +169,38 @@ export default function VendorBrowsePage() {
 
                   <div>
                     <label className="text-sm font-medium text-foreground mb-2 block">Location</label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                      <Input
-                        type="text"
-                        placeholder="City or area…"
-                        value={locationQuery}
-                        onChange={(e) => setLocationQuery(e.target.value)}
-                        className="pl-9"
-                      />
-                    </div>
+                    <select
+                      value={locationQuery}
+                      onChange={(e) => setLocationQuery(e.target.value)}
+                      className="w-full px-3 py-2 rounded-md border border-input bg-background text-foreground text-sm"
+                    >
+                      <option value="">All Locations</option>
+                      <option>Ampara</option>
+                      <option>Anuradhapura</option>
+                      <option>Badulla</option>
+                      <option>Batticaloa</option>
+                      <option>Colombo</option>
+                      <option>Galle</option>
+                      <option>Gampaha</option>
+                      <option>Hambantota</option>
+                      <option>Jaffna</option>
+                      <option>Kalutara</option>
+                      <option>Kandy</option>
+                      <option>Kegalle</option>
+                      <option>Kilinochchi</option>
+                      <option>Kurunegala</option>
+                      <option>Mannar</option>
+                      <option>Matale</option>
+                      <option>Matara</option>
+                      <option>Monaragala</option>
+                      <option>Mullaitivu</option>
+                      <option>Nuwara Eliya</option>
+                      <option>Polonnaruwa</option>
+                      <option>Puttalam</option>
+                      <option>Ratnapura</option>
+                      <option>Trincomalee</option>
+                      <option>Vavuniya</option>
+                    </select>
                   </div>
 
                   <div>

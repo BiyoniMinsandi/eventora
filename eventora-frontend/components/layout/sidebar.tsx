@@ -102,11 +102,12 @@ export function Sidebar({ userRole, userName, onLogout }: SidebarProps) {
     || 'User'
 
   const handleLogout = () => {
+    // Always clear React auth context so the header re-renders immediately.
+    authLogout()
     if (onLogout) {
       onLogout()
     } else {
       logoutUser()
-      authLogout()
       router.push('/login')
     }
   }

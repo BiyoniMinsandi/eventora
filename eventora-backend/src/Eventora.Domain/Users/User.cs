@@ -69,6 +69,9 @@ public sealed class User : EntityBase
 
     public List<AvailabilitySlot> Availability { get; set; } = [];
 
+    /// <summary>Specific dates the vendor has marked as unavailable (YYYY-MM-DD strings).</summary>
+    public List<string> BlockedDates { get; set; } = [];
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

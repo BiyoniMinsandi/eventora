@@ -31,7 +31,8 @@ public sealed record UserDto(
     string? RejectionReason,
     string? RejectedAt,
     string? ApprovedAt,
-    List<AvailabilitySlotDto>? Availability);
+    List<AvailabilitySlotDto>? Availability,
+    List<string>? BlockedDates);
 
 public static class UserDtoMapping
 {
@@ -70,6 +71,7 @@ public static class UserDtoMapping
             user.Availability?.Select(a => new AvailabilitySlotDto(
                 a.Date,
                 (a.TimeSlots ?? []).Select(t => new TimeSlotDto(t.StartTime, t.EndTime)).ToList()
-            )).ToList());
+            )).ToList(),
+            user.BlockedDates.Count > 0 ? user.BlockedDates : null);
     }
 }

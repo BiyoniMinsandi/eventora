@@ -65,6 +65,9 @@ internal static class UsersEndpoints
                         TimeSlots = (a.TimeSlots ?? []).Select(t => new TimeSlot { StartTime = t.StartTime, EndTime = t.EndTime }).ToList()
                     }).ToList();
                 }
+
+                if (req.BlockedDates is not null)
+                    user.BlockedDates = req.BlockedDates;
             }
 
             await users.UpdateAsync(user, ct);

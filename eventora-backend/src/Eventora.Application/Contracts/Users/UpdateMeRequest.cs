@@ -17,4 +17,5 @@ public sealed record UpdateMeRequest(
     int? PriceMin,
     int? PriceMax,
     string? Experience,
-    List<AvailabilitySlotDto>? Availability);
+    List<AvailabilitySlotDto>? Availability,
+    List<string>? BlockedDates);
