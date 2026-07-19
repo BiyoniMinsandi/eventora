@@ -22,7 +22,7 @@ import type { AvailabilitySlot } from '@/lib/auth'
 
 export default function VendorAvailability() {
   const router = useRouter()
-  const { user, login } = useAuth()
+  const { user, refreshUser } = useAuth()
   const { toast } = useToast()
 
   const [availability, setAvailability] = useState<AvailabilitySlot[]>([])
@@ -134,12 +134,11 @@ export default function VendorAvailability() {
     const result = await updateMeApi({ availability })
 
     if (result.success) {
-      if (result.user) login(result.user)
+      if (result.user) refreshUser(result.user)
       toast({
         title: 'Success',
-        description: 'Availability updated successfully',
+        description: 'Availability saved successfully',
       })
-      router.push('/vendor/dashboard')
     } else {
       toast({
         title: 'Error',

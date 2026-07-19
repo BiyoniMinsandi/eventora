@@ -268,9 +268,9 @@ export default function VendorDashboard() {
                     </Link>
                   </Button>
                   <Button variant="outline" asChild className="w-full justify-start gap-2 bg-transparent">
-                    <Link href="/vendor/portfolio">
+                    <Link href="/vendor/profile">
                       <Eye className="w-4 h-4" />
-                      Update Portfolio
+                      Edit Profile &amp; Portfolio
                     </Link>
                   </Button>
                 </div>

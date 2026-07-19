@@ -50,7 +50,7 @@ const getNavItems = (role: 'customer' | 'vendor' | 'admin') => {
     { label: 'Booking Requests', href: '/vendor/requests', icon: FileCheck },
     { label: 'My Bookings', href: '/vendor/bookings', icon: ShoppingCart },
     { label: 'Availability', href: '/vendor/availability', icon: Zap },
-    { label: 'Portfolio', href: '/vendor/portfolio', icon: ImageIcon },
+    { label: 'My Profile', href: '/vendor/profile', icon: ImageIcon },
     { label: 'Analytics', href: '/vendor/analytics', icon: BarChart3 },
     { label: 'Messages', href: '/vendor/messages', icon: MessageSquare },
     { label: 'Notifications', href: '/vendor/notifications', icon: Bell },

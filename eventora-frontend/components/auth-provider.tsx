@@ -24,6 +24,7 @@ interface AuthContextType {
   isLoading: boolean
   login: (user: User, token?: AuthToken | string) => void
   logout: () => void
+  refreshUser: (user: User) => void
   hasValidToken: boolean
 }
 
@@ -101,6 +102,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const refreshUser = (updatedUser: User) => {
+    setUser(updatedUser)
+  }
+
   /**
    * Logout user and clear tokens
    */
@@ -124,6 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         logout,
+        refreshUser,
         hasValidToken,
       }}
     >
