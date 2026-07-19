@@ -14,6 +14,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
+import { Sidebar } from '@/components/layout/sidebar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
@@ -23,9 +24,11 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import Loading from './loading'
 import type { User } from '@/lib/auth'
+import { useAuth } from '@/components/auth-provider'
 import { getVendors, getVendorReviews, getPublicCategories, type PublicCategory } from '@/lib/data'
 
 export default function VendorBrowsePage() {
+  const { user, isAuthenticated } = useAuth()
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
@@ -118,11 +121,8 @@ export default function VendorBrowsePage() {
   // Backend handles all filtering including text search; no client-side pass needed.
   const filteredVendors = vendors
 
-  return (
-    <Suspense fallback={<Loading />}>
-      <>
-        <Header />
-        <main className="flex-1">
+  const mainContent = (
+    <main className={`flex-1 overflow-y-auto ${isAuthenticated ? '' : ''}`}>
           {/* Search & Filter Section */}
           <section className="border-b border-gray-100 bg-gray-50/60 py-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -322,9 +322,23 @@ export default function VendorBrowsePage() {
               )}
             </div>
           </section>
-        </main>
-        <Footer />
-      </>
+    </main>
+  )
+
+  return (
+    <Suspense fallback={<Loading />}>
+      {isAuthenticated && user ? (
+        <div className="flex h-screen bg-background">
+          <Sidebar userRole={user.role as 'customer' | 'vendor' | 'admin'} />
+          {mainContent}
+        </div>
+      ) : (
+        <>
+          <Header />
+          {mainContent}
+          <Footer />
+        </>
+      )}
     </Suspense>
   )
 }

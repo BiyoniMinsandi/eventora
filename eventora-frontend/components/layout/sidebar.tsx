@@ -76,9 +76,14 @@ const getNavItems = (role: 'customer' | 'vendor' | 'admin') => {
 export function Sidebar({ userRole, userName, onLogout }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const { logout: authLogout } = useAuth()
+  const { user: authUser, logout: authLogout } = useAuth()
   const [collapsed, setCollapsed] = useState(false)
   const navItems = getNavItems(userRole)
+
+  const displayName = userName
+    || authUser?.businessName
+    || authUser?.fullName
+    || 'User'
 
   const handleLogout = () => {
     if (onLogout) {
@@ -99,11 +104,11 @@ export function Sidebar({ userRole, userName, onLogout }: SidebarProps) {
       {/* Header */}
       <div className={`flex items-center border-b border-sidebar-border p-3 gap-2 ${collapsed ? 'justify-center flex-col' : ''}`}>
         <div className="w-8 h-8 rounded-full bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-semibold text-sm shrink-0">
-          {userName?.charAt(0).toUpperCase() || 'U'}
+          {displayName.charAt(0).toUpperCase()}
         </div>
         {!collapsed && (
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">{userName || 'User'}</p>
+            <p className="text-sm font-medium text-sidebar-foreground truncate">{displayName}</p>
             <p className="text-xs text-sidebar-foreground/60 capitalize">{userRole}</p>
           </div>
         )}
