@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Eventora.Application.Abstractions.Email;
 using Eventora.Application.Abstractions.Persistence;
 using Eventora.Application.Contracts.Users;
 using Eventora.Domain.Users;
@@ -87,7 +88,7 @@ internal static class VendorsEndpoints
             return Results.Ok(pending.Select(UserDtoMapping.ToDto));
         });
 
-        admin.MapPost("/{id}/approve", async (string id, IUserRepository users, INotificationRepository notifications, CancellationToken ct) =>
+        admin.MapPost("/{id}/approve", async (string id, IUserRepository users, INotificationRepository notifications, IEmailService email, CancellationToken ct) =>
         {
             var vendor = await users.GetByIdAsync(id, ct);
             if (vendor is null || vendor.Role != UserRole.Vendor) return Results.NotFound(new { message = "Vendor not found" });
@@ -108,10 +109,35 @@ internal static class VendorsEndpoints
                 relatedDisputeId: null,
                 ct);
 
+            var displayName = vendor.BusinessName ?? vendor.FullName;
+            await email.SendAsync(
+                vendor.Email,
+                displayName,
+                "Your Eventora vendor account has been approved!",
+                $"""
+                <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;color:#111">
+                  <div style="margin-bottom:24px">
+                    <span style="font-size:20px;font-weight:700;color:#1d4ed8">Eventora</span>
+                  </div>
+                  <h1 style="font-size:22px;font-weight:700;margin:0 0 8px">You're approved! 🎉</h1>
+                  <p style="color:#555;margin:0 0 20px">Hi {displayName},<br><br>
+                  Your vendor account on <strong>Eventora</strong> has been reviewed and approved by our team.
+                  You can now log in and start accepting bookings.</p>
+                  <a href="https://eventora-ecdn.vercel.app/login"
+                     style="display:inline-block;background:#1d4ed8;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">
+                    Log In to Eventora
+                  </a>
+                  <p style="color:#888;font-size:12px;margin-top:32px">
+                    If you did not register on Eventora, you can ignore this email.
+                  </p>
+                </div>
+                """,
+                ct);
+
             return Results.Ok(UserDtoMapping.ToDto(vendor));
         });
 
-        admin.MapPost("/{id}/reject", async (string id, RejectVendorRequest req, IUserRepository users, INotificationRepository notifications, CancellationToken ct) =>
+        admin.MapPost("/{id}/reject", async (string id, RejectVendorRequest req, IUserRepository users, INotificationRepository notifications, IEmailService email, CancellationToken ct) =>
         {
             var vendor = await users.GetByIdAsync(id, ct);
             if (vendor is null || vendor.Role != UserRole.Vendor) return Results.NotFound(new { message = "Vendor not found" });
@@ -129,6 +155,30 @@ internal static class VendorsEndpoints
                 vendor.RejectionReason,
                 relatedBookingId: null,
                 relatedDisputeId: null,
+                ct);
+
+            var displayName = vendor.BusinessName ?? vendor.FullName;
+            await email.SendAsync(
+                vendor.Email,
+                displayName,
+                "Update on your Eventora vendor application",
+                $"""
+                <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;color:#111">
+                  <div style="margin-bottom:24px">
+                    <span style="font-size:20px;font-weight:700;color:#1d4ed8">Eventora</span>
+                  </div>
+                  <h1 style="font-size:22px;font-weight:700;margin:0 0 8px">Application update</h1>
+                  <p style="color:#555;margin:0 0 16px">Hi {displayName},<br><br>
+                  Thank you for applying to join Eventora as a vendor. After reviewing your application,
+                  we are unable to approve your account at this time.</p>
+                  {(string.IsNullOrWhiteSpace(vendor.RejectionReason) ? "" :
+                    $"<p style=\"color:#555;margin:0 0 16px\"><strong>Reason:</strong> {vendor.RejectionReason}</p>")}
+                  <p style="color:#555;margin:0 0 20px">You are welcome to reapply once the issue has been addressed.</p>
+                  <p style="color:#888;font-size:12px;margin-top:32px">
+                    If you have questions, reply to this email or contact Eventora support.
+                  </p>
+                </div>
+                """,
                 ct);
 
             return Results.Ok(UserDtoMapping.ToDto(vendor));
