@@ -20,6 +20,8 @@ import {
   DollarSign,
   Eye,
   Percent,
+  Hourglass,
+  XCircle,
 } from 'lucide-react'
 import Link from 'next/link'
 import { ProtectedRoute } from '@/components/protected-route'
@@ -136,6 +138,34 @@ export default function VendorDashboard() {
               </h1>
               <p className="text-muted-foreground">Manage your bookings and grow your business</p>
             </div>
+
+            {/* Approval Status Banner */}
+            {user?.role === 'vendor' && !user.approved && !user.rejectedAt && (
+              <div className="mb-6 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-4">
+                <Hourglass className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-amber-800">Account pending approval</p>
+                  <p className="text-sm text-amber-700 mt-0.5">
+                    Your vendor registration is under review. You'll receive an email and an in-app notification as soon as an admin approves or responds to your application.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {user?.role === 'vendor' && !user.approved && !!user.rejectedAt && (
+              <div className="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-4">
+                <XCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-red-800">Application not approved</p>
+                  {user.rejectionReason && (
+                    <p className="text-sm text-red-700 mt-0.5">Reason: {user.rejectionReason}</p>
+                  )}
+                  <p className="text-sm text-red-700 mt-1">
+                    Please update your profile and contact Eventora support if you believe this is a mistake.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

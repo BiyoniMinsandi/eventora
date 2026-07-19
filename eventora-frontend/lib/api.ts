@@ -6,10 +6,12 @@ export type ApiError = {
   details?: unknown
 }
 
-const DEFAULT_API_BASE_URL = 'http://localhost:5125'
+// /backend is proxied by Next.js rewrites → real backend (API_URL env var on server).
+// Override with NEXT_PUBLIC_API_URL for direct calls (e.g. local dev: http://localhost:5125).
+const PROXY_BASE = '/backend'
 
 export function getApiBaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_BASE_URL).replace(/\/+$/, '')
+  return (process.env.NEXT_PUBLIC_API_URL || PROXY_BASE).replace(/\/+$/, '')
 }
 
 function tryReadJson(text: string): unknown {
