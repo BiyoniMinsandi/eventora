@@ -295,11 +295,6 @@ export default function CustomerBookingsPage() {
                           </div>
 
                           <div className="flex flex-col gap-2">
-                            <Button size="sm" asChild>
-                              <Link href={`/customer/bookings/${booking.id}`}>
-                                View Details
-                              </Link>
-                            </Button>
                             {booking.status === 'accepted' && booking.paymentStatus !== 'paid' && (
                               <Button
                                 size="sm"

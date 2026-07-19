@@ -32,6 +32,8 @@ export default function CustomerSettings() {
   const [activeTab, setActiveTab] = useState('preferences')
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' })
   const [pwLoading, setPwLoading] = useState(false)
+  const [deleteStep, setDeleteStep] = useState<'idle' | 'confirm'>('idle')
+  const [deleteInput, setDeleteInput] = useState('')
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -318,28 +320,62 @@ export default function CustomerSettings() {
                 </div>
               </Card>
 
-              <Card className="p-8">
-                <h2 className="text-lg font-bold text-foreground mb-6">Data Management</h2>
-                <div className="space-y-4">
-                  <Button variant="outline" className="w-full gap-2 bg-transparent">
-                    Download My Data
-                  </Button>
-                  <Button variant="outline" className="w-full gap-2 bg-transparent">
-                    Export Bookings History
-                  </Button>
-                </div>
-              </Card>
-
-              <Card className="p-8 border-red-200 bg-red-50">
-                <h2 className="text-lg font-bold text-red-900 mb-4">Danger Zone</h2>
-                <p className="text-sm text-red-800 mb-4">
-                  Deleting your account is permanent and cannot be undone. All your data will be
-                  deleted.
+              <Card className="p-8 border-border">
+                <h2 className="text-lg font-bold text-foreground mb-1 flex items-center gap-2">
+                  <Trash2 className="w-4 h-4 text-destructive" />
+                  Delete Account
+                </h2>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Once deleted, your account and all associated data are permanently removed and cannot be recovered.
                 </p>
-                <Button variant="destructive" className="gap-2">
-                  <Trash2 className="w-4 h-4" />
-                  Delete My Account
-                </Button>
+
+                {deleteStep === 'idle' && (
+                  <Button
+                    variant="outline"
+                    className="gap-2 border-destructive/40 text-destructive hover:bg-destructive/5 bg-transparent"
+                    onClick={() => setDeleteStep('confirm')}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete My Account
+                  </Button>
+                )}
+
+                {deleteStep === 'confirm' && (
+                  <div className="space-y-4 max-w-sm">
+                    <p className="text-sm font-medium text-foreground">
+                      Type <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-destructive">DELETE</span> to confirm
+                    </p>
+                    <input
+                      value={deleteInput}
+                      onChange={(e) => setDeleteInput(e.target.value)}
+                      placeholder="Type DELETE to confirm"
+                      className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-destructive/30"
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => { setDeleteStep('idle'); setDeleteInput('') }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="flex-1 gap-2"
+                        disabled={deleteInput !== 'DELETE'}
+                        onClick={() => {
+                          toast({ title: 'Account deletion requested', description: 'Please contact support to complete the process.' })
+                          setDeleteStep('idle')
+                          setDeleteInput('')
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Confirm Delete
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </Card>
             </TabsContent>
           </Tabs>

@@ -300,6 +300,10 @@ export async function registerUserApi(userData: {
         password: userData.password,
         fullName: userData.fullName,
         role: userData.role,
+        phone: userData.phone,
+        businessName: userData.businessName,
+        category: userData.category,
+        location: userData.location,
       }),
     })
 
@@ -339,6 +343,10 @@ export async function registerUserApi(userData: {
       fullName: data.user?.fullName || userData.fullName,
       role: data.user?.role || tokenPayload.role,
       approved: data.user?.approved,
+      phone: data.user?.phone || userData.phone,
+      location: data.user?.location || userData.location,
+      businessName: data.user?.businessName || userData.businessName,
+      category: data.user?.category || userData.category,
       createdAt: data.user?.createdAt || new Date().toISOString(),
     }
 

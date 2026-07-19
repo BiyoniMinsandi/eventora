@@ -4,7 +4,6 @@ import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/components/auth-provider'
 import { ErrorBoundary } from '@/components/error-boundary'
-import { BackButton } from '@/components/back-button'
 import './globals.css'
 
 const inter = Inter({
@@ -32,7 +31,6 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <ErrorBoundary>
           <AuthProvider>
-            <BackButton />
             {children}
           </AuthProvider>
         </ErrorBoundary>
