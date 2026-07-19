@@ -82,7 +82,7 @@ function verifyPasswordHash(password: string, hash: string): boolean {
 // LocalStorage keys
 const AUTH_STORAGE_KEY = 'eventora_auth'
 const USERS_STORAGE_KEY = 'eventora_users'
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5125'
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? '/backend').replace(/\/+$/, '')
 
 /**
  * Get all registered users from localStorage
