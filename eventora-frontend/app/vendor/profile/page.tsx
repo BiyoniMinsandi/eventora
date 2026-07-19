@@ -22,7 +22,7 @@ import { updateMeApi } from '@/lib/auth'
 import { uploadFile } from '@/lib/api'
 import {
   Upload, X, Save, ArrowLeft, ImageIcon, Video,
-  ExternalLink, Plus, Trash2, Loader2,
+  ExternalLink, Plus, Trash2, Loader2, Star,
 } from 'lucide-react'
 import {
   Dialog,
@@ -134,6 +134,15 @@ export default function VendorProfilePage() {
     }
     setUploadingVideo(false)
     if (videoInputRef.current) videoInputRef.current.value = ''
+  }
+
+  const handleSetCover = async (idx: number) => {
+    if (idx === 0) return
+    const updated = [photos[idx], ...photos.filter((_, i) => i !== idx)]
+    setPhotos(updated)
+    const result = await updateMeApi({ photos: updated })
+    if (result.success && result.user) refreshUser(result.user)
+    toast({ title: 'Cover photo updated' })
   }
 
   const handleRemovePhoto = async (idx: number) => {
@@ -324,9 +333,11 @@ export default function VendorProfilePage() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <ImageIcon className="w-5 h-5 text-primary" />
-                    Portfolio Photos
+                    Photos &amp; Cover Image
                   </CardTitle>
-                  <CardDescription>JPEG, PNG or WebP &middot; max 10 MB each &middot; saved automatically</CardDescription>
+                  <CardDescription>
+                    The first photo is your <strong>cover image</strong> — shown as the hero banner customers see. Hover a photo and click "Set as Cover" to change it.
+                  </CardDescription>
                 </div>
                 <div>
                   <input
@@ -356,13 +367,28 @@ export default function VendorProfilePage() {
                 >
                   <ImageIcon className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
                   <p className="text-sm font-medium text-foreground">Click to upload your first photo</p>
-                  <p className="text-xs text-muted-foreground mt-1">Photos appear in your gallery on the public vendor page</p>
+                  <p className="text-xs text-muted-foreground mt-1">Your first photo becomes the cover image customers see on your profile</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {photos.map((url, idx) => (
                     <div key={idx} className="relative group rounded-xl overflow-hidden bg-muted aspect-square">
                       <Image src={url} alt={`Photo ${idx + 1}`} fill className="object-cover" unoptimized />
+                      {/* Cover badge on first photo */}
+                      {idx === 0 && (
+                        <div className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <Star className="w-2.5 h-2.5 fill-current" /> Cover
+                        </div>
+                      )}
+                      {/* Set as Cover button on non-cover photos */}
+                      {idx !== 0 && (
+                        <button
+                          onClick={() => handleSetCover(idx)}
+                          className="absolute bottom-1.5 left-1.5 right-8 bg-black/75 text-white text-[10px] font-semibold px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity text-center"
+                        >
+                          Set as Cover
+                        </button>
+                      )}
                       <button
                         onClick={() => handleRemovePhoto(idx)}
                         className="absolute top-1.5 right-1.5 bg-black/70 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive"

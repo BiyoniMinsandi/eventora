@@ -305,20 +305,14 @@ export default function VendorDashboard() {
                   </Button>
                   <Button variant="outline" asChild className="w-full justify-start gap-2 bg-transparent">
                     <Link href="/vendor/profile">
-                      <TrendingUp className="w-4 h-4" />
-                      Edit Profile
+                      <Eye className="w-4 h-4" />
+                      Edit Profile &amp; Portfolio
                     </Link>
                   </Button>
                   <Button variant="outline" asChild className="w-full justify-start gap-2 bg-transparent">
                     <Link href="/vendor/messages">
                       <MessageCircle className="w-4 h-4" />
                       Messages
-                    </Link>
-                  </Button>
-                  <Button variant="outline" asChild className="w-full justify-start gap-2 bg-transparent">
-                    <Link href="/vendor/profile">
-                      <Eye className="w-4 h-4" />
-                      Edit Profile &amp; Portfolio
                     </Link>
                   </Button>
                 </div>

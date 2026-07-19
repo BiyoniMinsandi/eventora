@@ -12,12 +12,13 @@ import { Footer } from '@/components/layout/footer'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Star, MapPin, Phone, Mail, ArrowLeft, AlertCircle } from 'lucide-react'
+import { Star, MapPin, Phone, Mail, ArrowLeft, AlertCircle, Pencil } from 'lucide-react'
 import { BookingDialog } from '@/components/booking-dialog'
 import { getVendorById, getVendors, getVendorReviews } from '@/lib/data'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import type { User } from '@/lib/auth'
+import { useAuth } from '@/components/auth-provider'
 
 const CATEGORY_FALLBACKS: Record<string, string> = {
   photography: 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=1600&q=85',
@@ -30,12 +31,12 @@ const DEFAULT_HERO = 'https://images.unsplash.com/photo-1464366400600-7168b8af9b
 
 export default function VendorProfilePage() {
   const params = useParams()
+  const { user: authUser } = useAuth()
   const [vendor, setVendor] = useState<User | null>(null)
   const [reviews, setReviews] = useState<any[]>([])
   const [avgRating, setAvgRating] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Normalizes a name into a slug so profiles can be visited by id or by a readable name.
   const normalizeSlug = (value: string) =>
     value
       .toLowerCase()
@@ -43,7 +44,6 @@ export default function VendorProfilePage() {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '')
 
-  // Only approved vendors should be visible on public pages.
   const isApprovedVendor = (candidate: User) =>
     candidate.role === 'vendor' &&
     (candidate.approved === true || Boolean(candidate.approvedAt))
@@ -55,9 +55,10 @@ export default function VendorProfilePage() {
     ;(async () => {
       try {
         const direct = await getVendorById(paramId)
-        if (!cancelled) setVendor(direct && isApprovedVendor(direct) ? direct : null)
+        // Allow vendor to preview their own profile even if not yet approved
+        const isOwner = authUser?.id === direct?.id
+        if (!cancelled) setVendor(direct && (isApprovedVendor(direct) || isOwner) ? direct : null)
       } catch {
-        // Fallback: allow slug-style URLs by searching approved vendors.
         const allVendors = await getVendors()
         const found = allVendors.find(
           (u) =>
@@ -73,7 +74,7 @@ export default function VendorProfilePage() {
     return () => {
       cancelled = true
     }
-  }, [params.id])
+  }, [params.id, authUser?.id])
 
   useEffect(() => {
     if (!vendor?.id) {
@@ -129,6 +130,8 @@ export default function VendorProfilePage() {
     )
   }
 
+  const isOwnProfile = authUser?.id === vendor.id && authUser?.role === 'vendor'
+
   const services = (vendor.services || []).map((service, idx) => ({
     id: `${vendor.id}-${idx}`,
     name: service.split(':')[0] || service,
@@ -142,13 +145,32 @@ export default function VendorProfilePage() {
     <>
       <Header />
       <main className="flex-1">
+        {/* Vendor preview banner — only visible to the vendor themselves */}
+        {isOwnProfile && (
+          <div className="bg-primary text-primary-foreground px-4 py-3">
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+              <p className="text-sm font-medium">
+                {vendor.approved
+                  ? 'This is how customers see your profile.'
+                  : 'Preview mode — your profile is pending admin approval and not yet public.'}
+              </p>
+              <Button size="sm" variant="secondary" asChild className="gap-2 shrink-0">
+                <Link href="/vendor/profile">
+                  <Pencil className="w-3.5 h-3.5" />
+                  Edit Profile
+                </Link>
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Back Button */}
         <div className="border-b border-border sticky top-16 z-40 bg-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Button variant="ghost" asChild className="gap-2">
-              <Link href="/vendors">
+              <Link href={isOwnProfile ? '/vendor/dashboard' : '/vendors'}>
                 <ArrowLeft className="w-4 h-4" />
-                Back to Vendors
+                {isOwnProfile ? 'Back to Dashboard' : 'Back to Vendors'}
               </Link>
             </Button>
           </div>
