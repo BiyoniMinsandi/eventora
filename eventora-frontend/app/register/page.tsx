@@ -354,15 +354,26 @@ export default function RegisterPage() {
               <label htmlFor="confirmPassword" className="text-sm font-medium">
                 Confirm Password
               </label>
-              <Input
-                id="confirmPassword"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Confirm password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={loading}
-                autoComplete="new-password"
-              />
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Confirm password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="pr-10"
+                  disabled={loading}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  disabled={loading}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             {/* Submit */}
