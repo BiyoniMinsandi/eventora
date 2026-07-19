@@ -258,12 +258,14 @@ export default function VendorProfilePage() {
               </div>
 
               {/* CTA Button */}
-              <BookingDialog
-                vendorId={vendor.id}
-                vendorName={vendor.businessName || vendor.fullName}
-                vendorBusinessName={vendor.businessName || vendor.fullName}
-                vendorAvailability={vendor.availability}
-              />
+              {!isOwnProfile && (
+                <BookingDialog
+                  vendorId={vendor.id}
+                  vendorName={vendor.businessName || vendor.fullName}
+                  vendorBusinessName={vendor.businessName || vendor.fullName}
+                  blockedDates={vendor.blockedDates}
+                />
+              )}
             </div>
           </div>
         </section>

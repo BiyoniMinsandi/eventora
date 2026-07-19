@@ -44,6 +44,7 @@ export interface User {
   rejectedAt?: string
   approvedAt?: string
   availability?: AvailabilitySlot[]
+  blockedDates?: string[] // Dates vendor is NOT available (YYYY-MM-DD)
 }
 
 export interface AuthState {

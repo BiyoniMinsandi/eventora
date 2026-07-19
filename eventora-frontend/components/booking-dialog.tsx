@@ -16,17 +16,15 @@ import {
 import { Calendar, CheckCircle, AlertTriangle } from 'lucide-react'
 import { useAuth } from '@/components/auth-provider'
 import { createBooking } from '@/lib/data'
-import type { AvailabilitySlot } from '@/lib/auth'
-
 interface BookingDialogProps {
   vendorId: string
   vendorName: string
   vendorBusinessName: string
-  vendorAvailability?: AvailabilitySlot[]
+  blockedDates?: string[]
   trigger?: React.ReactNode
 }
 
-export function BookingDialog({ vendorId, vendorName, vendorBusinessName, vendorAvailability, trigger }: BookingDialogProps) {
+export function BookingDialog({ vendorId, vendorName, vendorBusinessName, blockedDates, trigger }: BookingDialogProps) {
   const router = useRouter()
   const { user, isAuthenticated } = useAuth()
   const [open, setOpen] = useState(false)
@@ -168,9 +166,8 @@ export function BookingDialog({ vendorId, vendorName, vendorBusinessName, vendor
                   onChange={(e) => {
                     const date = e.target.value
                     setFormData({ ...formData, eventDate: date })
-                    if (date && vendorAvailability && vendorAvailability.length > 0) {
-                      const ok = vendorAvailability.some((s) => s.date === date)
-                      setAvailabilityWarning(ok ? null : "This date is outside the vendor's listed availability — your request will still be sent and the vendor will confirm.")
+                    if (date && blockedDates && blockedDates.includes(date)) {
+                      setAvailabilityWarning("The vendor has marked this date as unavailable. Your request will still be sent and the vendor may confirm if plans change.")
                     } else {
                       setAvailabilityWarning(null)
                     }
