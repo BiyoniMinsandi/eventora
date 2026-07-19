@@ -178,7 +178,7 @@ export default function VendorProfilePage() {
             <p className="text-white/60 text-[10px] font-semibold tracking-[0.3em] uppercase mb-2 capitalize">
               {vendor.category || 'Vendor'}
             </p>
-            <h1 className="text-2xl md:text-4xl font-bold text-white drop-shadow-md" style={{fontFamily:'var(--font-heading)'}}>
+            <h1 className="text-2xl md:text-4xl font-bold text-white drop-shadow-md">
               {vendor.businessName || vendor.fullName}
             </h1>
           </div>

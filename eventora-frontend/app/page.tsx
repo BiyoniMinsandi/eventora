@@ -79,7 +79,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/45 to-black/75" />
           <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white">
             <p className="text-[10px] font-semibold tracking-[0.35em] uppercase text-white/40 mb-6">Sri Lanka&apos;s Premier Event Marketplace</p>
-            <h1 className="text-5xl md:text-7xl font-bold leading-[1.1] mb-6" style={{fontFamily:'var(--font-heading)'}}>
+            <h1 className="text-5xl md:text-7xl font-bold leading-[1.1] mb-6">
               Your Perfect Event<br /><span className="italic">Starts Here</span>
             </h1>
             <p className="text-base md:text-lg text-white/60 mb-10 max-w-xl mx-auto leading-relaxed font-light">
@@ -116,7 +116,7 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-14">
               <p className="text-primary text-[10px] font-semibold tracking-[0.3em] uppercase mb-4">Services</p>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900" style={{fontFamily:'var(--font-heading)'}}>Browse by Category</h2>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900">Browse by Category</h2>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
               {categories.map(cat => {
@@ -145,7 +145,7 @@ export default function HomePage() {
           <div className="max-w-5xl mx-auto px-6">
             <div className="text-center mb-16">
               <p className="text-primary text-[10px] font-semibold tracking-[0.3em] uppercase mb-4">Process</p>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900" style={{fontFamily:'var(--font-heading)'}}>How It Works</h2>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900">How It Works</h2>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
               {[
@@ -156,11 +156,11 @@ export default function HomePage() {
                 const Icon = s.icon
                 return (
                   <div key={s.n} className="bg-white rounded-2xl p-8 border border-gray-100 hover:border-primary/20 hover:shadow-lg transition-all duration-300 group">
-                    <span className="text-7xl font-bold leading-none block mb-3 transition-all duration-500 group-hover:scale-110 group-hover:translate-x-1 origin-left" style={{fontFamily:'var(--font-heading)',color:'rgba(37,99,235,0.18)'}}>{s.n}</span>
+                    <span className="text-7xl font-bold leading-none block mb-3 transition-all duration-500 group-hover:scale-110 group-hover:translate-x-1 origin-left" style={{color:'rgba(37,99,235,0.18)'}}>{s.n}</span>
                     <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                       <Icon className="w-5 h-5 text-white" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2" style={{fontFamily:'var(--font-heading)'}}>{s.title}</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{s.title}</h3>
                     <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
                   </div>
                 )
@@ -175,7 +175,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-primary/88" />
           <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white">
             <p className="text-[10px] font-semibold tracking-[0.3em] uppercase text-white/40 mb-4">Why Eventora</p>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{fontFamily:'var(--font-heading)'}}>Everything For Your Special Day</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Everything For Your Special Day</h2>
             <p className="text-white/60 text-base mb-12 max-w-xl mx-auto font-light">From intimate gatherings to grand celebrations, we connect you with the best event professionals.</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
               {[
@@ -206,7 +206,7 @@ export default function HomePage() {
             <div className="max-w-6xl mx-auto px-6">
               <div className="text-center mb-14">
                 <p className="text-primary text-[10px] font-semibold tracking-[0.3em] uppercase mb-4">Testimonials</p>
-                <h2 className="text-4xl md:text-5xl font-bold text-gray-900" style={{fontFamily:'var(--font-heading)'}}>What Our Customers Say</h2>
+                <h2 className="text-4xl md:text-5xl font-bold text-gray-900">What Our Customers Say</h2>
               </div>
               <div className="grid md:grid-cols-3 gap-6">
                 {reviews.map(r => (
@@ -234,7 +234,7 @@ export default function HomePage() {
         {/* CTA */}
         <section className="py-24 bg-gray-50">
           <div className="max-w-2xl mx-auto px-6 text-center">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-5" style={{fontFamily:'var(--font-heading)'}}>Ready to Plan Your Event?</h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-5">Ready to Plan Your Event?</h2>
             <p className="text-gray-400 mb-10 leading-relaxed">Join thousands of happy customers who made their celebrations unforgettable.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/register" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-primary hover:bg-primary/90 text-white font-semibold text-sm rounded-xl transition-colors shadow-md">

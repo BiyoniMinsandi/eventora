@@ -247,7 +247,7 @@ export default function VendorBrowsePage() {
                             <Image src={firstPhoto} alt={vendor.businessName || vendor.fullName} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/8 to-primary/20">
-                              <span className="text-6xl font-bold text-primary/20" style={{fontFamily:'var(--font-heading)'}}>
+                              <span className="text-6xl font-bold text-primary/20">
                                 {(vendor.businessName || vendor.fullName).charAt(0)}
                               </span>
                             </div>
