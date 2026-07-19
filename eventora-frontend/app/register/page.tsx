@@ -86,7 +86,7 @@ export default function RegisterPage() {
     if (result.success && result.user) {
       if (role === 'vendor') {
         // Vendors go to login after showing an approval message.
-        setSuccess('Vendor registration successful! Your account is pending admin approval. You will be notified once approved.')
+        setSuccess('Registration submitted! Your vendor application is under review. You will receive a response within 2 working days via email and in-app notification.')
         setLoading(false)
         setTimeout(() => {
           router.push('/login')

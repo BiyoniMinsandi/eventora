@@ -227,8 +227,8 @@ authGroup.MapPost("/login", async (
 
         if (user.RejectedAt is not null)
         {
-            var reason = string.IsNullOrWhiteSpace(user.RejectionReason) ? "Account is suspended" : user.RejectionReason;
-            return Results.Json(new { message = reason }, statusCode: StatusCodes.Status401Unauthorized);
+            var reason = string.IsNullOrWhiteSpace(user.RejectionReason) ? "No reason provided" : user.RejectionReason;
+            return Results.Json(new { message = $"REJECTED:{reason}", status = "rejected", reason }, statusCode: StatusCodes.Status401Unauthorized);
         }
 
         if (!hasher.Verify(req.Password, user.PasswordHash))

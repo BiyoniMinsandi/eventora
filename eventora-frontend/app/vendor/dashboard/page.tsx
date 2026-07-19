@@ -156,12 +156,14 @@ export default function VendorDashboard() {
               <div className="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-4">
                 <XCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-red-800">Application not approved</p>
-                  {user.rejectionReason && (
-                    <p className="text-sm text-red-700 mt-0.5">Reason: {user.rejectionReason}</p>
-                  )}
-                  <p className="text-sm text-red-700 mt-1">
-                    Please update your profile and contact Eventora support if you believe this is a mistake.
+                  <p className="font-semibold text-red-800">Application rejected</p>
+                  <p className="text-sm text-red-700 mt-0.5">
+                    {user.rejectionReason
+                      ? <>Reason: {user.rejectionReason}</>
+                      : 'No reason provided.'}
+                  </p>
+                  <p className="text-sm text-red-600 mt-1">
+                    Contact Eventora support if you believe this is a mistake.
                   </p>
                 </div>
               </div>

@@ -14,9 +14,11 @@ import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { AlertCircle, Eye, EyeOff, LogIn } from 'lucide-react'
+import { AlertCircle, Eye, EyeOff, LogIn, Hourglass, XCircle } from 'lucide-react'
 import { useAuth } from '@/components/auth-provider'
 import { loginUserApi, getRoleRedirectUrl } from '@/lib/auth'
+
+type LoginStatus = 'credentials' | 'pending' | 'rejected' | 'error' | null
 
 export default function LoginPage() {
   const router = useRouter()
@@ -24,17 +26,18 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
+  const [loginStatus, setLoginStatus] = useState<LoginStatus>(null)
+  const [errorMsg, setErrorMsg] = useState('')
+  const [rejectionReason, setRejectionReason] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // Local-only login: validate input, attempt auth, then redirect.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
-    
-    // Validate inputs
+    setLoginStatus(null)
+
     if (!email || !password) {
-      setError('Please fill in all fields')
+      setLoginStatus('error')
+      setErrorMsg('Please fill in all fields')
       return
     }
 
@@ -47,7 +50,16 @@ export default function LoginPage() {
       const redirectUrl = getRoleRedirectUrl(result.user.role)
       router.push(redirectUrl)
     } else {
-      setError(result.message)
+      const msg = result.message || ''
+      if (msg.startsWith('REJECTED:')) {
+        setLoginStatus('rejected')
+        setRejectionReason(msg.replace('REJECTED:', '').trim())
+      } else if (msg.toLowerCase().includes('pending')) {
+        setLoginStatus('pending')
+      } else {
+        setLoginStatus('credentials')
+        setErrorMsg(msg)
+      }
       setLoading(false)
     }
   }
@@ -63,11 +75,36 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-            {/* Error Message */}
-            {error && (
+            {/* Rejected */}
+            {loginStatus === 'rejected' && (
+              <div className="flex gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-red-800">Application rejected</p>
+                  {rejectionReason && (
+                    <p className="text-sm text-red-700 mt-0.5">Reason: {rejectionReason}</p>
+                  )}
+                  <p className="text-xs text-red-600 mt-1">Contact support if you think this is a mistake.</p>
+                </div>
+              </div>
+            )}
+
+            {/* Pending */}
+            {loginStatus === 'pending' && (
+              <div className="flex gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <Hourglass className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-800">Account pending approval</p>
+                  <p className="text-sm text-amber-700 mt-0.5">Your vendor application is under review. You'll be notified within 2 working days.</p>
+                </div>
+              </div>
+            )}
+
+            {/* Generic / credentials error */}
+            {(loginStatus === 'credentials' || loginStatus === 'error') && (
               <div className="flex gap-3 p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
                 <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-destructive">{error}</p>
+                <p className="text-sm text-destructive">{errorMsg}</p>
               </div>
             )}
 
