@@ -51,21 +51,31 @@ export default function VendorProfilePage() {
   useEffect(() => {
     const paramId = decodeURIComponent((params.id as string) ?? '')
 
+    // If the logged-in vendor is previewing their own profile, use auth data
+    // directly — no API call needed, works even without backend configured.
+    if (authUser?.role === 'vendor' && authUser.id === paramId) {
+      setVendor(authUser as any)
+      setIsLoading(false)
+      return
+    }
+
     let cancelled = false
     ;(async () => {
       try {
         const direct = await getVendorById(paramId)
-        // Allow vendor to preview their own profile even if not yet approved
-        const isOwner = authUser?.id === direct?.id
-        if (!cancelled) setVendor(direct && (isApprovedVendor(direct) || isOwner) ? direct : null)
+        if (!cancelled) setVendor(direct && isApprovedVendor(direct) ? direct : null)
       } catch {
-        const allVendors = await getVendors()
-        const found = allVendors.find(
-          (u) =>
-            isApprovedVendor(u) &&
-            normalizeSlug(u.businessName || u.fullName) === normalizeSlug(paramId)
-        )
-        if (!cancelled) setVendor(found || null)
+        try {
+          const allVendors = await getVendors()
+          const found = allVendors.find(
+            (u) =>
+              isApprovedVendor(u) &&
+              normalizeSlug(u.businessName || u.fullName) === normalizeSlug(paramId)
+          )
+          if (!cancelled) setVendor(found || null)
+        } catch {
+          if (!cancelled) setVendor(null)
+        }
       } finally {
         if (!cancelled) setIsLoading(false)
       }

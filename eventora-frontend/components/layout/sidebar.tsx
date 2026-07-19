@@ -2,9 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/components/auth-provider'
 import { logoutUser } from '@/lib/auth'
+import { getUnreadNotificationCount } from '@/lib/data'
 import {
   LayoutDashboard,
   Briefcase,
@@ -78,7 +79,22 @@ export function Sidebar({ userRole, userName, onLogout }: SidebarProps) {
   const router = useRouter()
   const { user: authUser, logout: authLogout } = useAuth()
   const [collapsed, setCollapsed] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const navItems = getNavItems(userRole)
+
+  useEffect(() => {
+    if (!authUser?.id) return
+    let active = true
+    getUnreadNotificationCount(authUser.id)
+      .then(n => { if (active) setUnreadCount(n) })
+      .catch(() => {})
+    const interval = setInterval(() => {
+      getUnreadNotificationCount(authUser.id)
+        .then(n => { if (active) setUnreadCount(n) })
+        .catch(() => {})
+    }, 30000)
+    return () => { active = false; clearInterval(interval) }
+  }, [authUser?.id])
 
   const displayName = userName
     || authUser?.businessName
@@ -126,6 +142,8 @@ export function Sidebar({ userRole, userName, onLogout }: SidebarProps) {
         {navItems.map((item) => {
           const Icon = item.icon
           const active = isActive(item.href)
+          const isNotifications = item.href.includes('/notifications')
+          const showBadge = isNotifications && unreadCount > 0
           return (
             <Link key={item.href} href={item.href}>
               <div
@@ -136,8 +154,22 @@ export function Sidebar({ userRole, userName, onLogout }: SidebarProps) {
                     : 'text-sidebar-foreground hover:bg-sidebar-accent/20'
                 } ${collapsed ? 'justify-center' : ''}`}
               >
-                <Icon className="w-4.5 h-4.5 w-[18px] h-[18px] shrink-0" />
-                {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
+                <div className="relative shrink-0">
+                  <Icon className="w-[18px] h-[18px]" />
+                  {showBadge && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-0.5 leading-none">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </div>
+                {!collapsed && (
+                  <span className="text-sm font-medium flex-1">{item.label}</span>
+                )}
+                {!collapsed && showBadge && (
+                  <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </div>
             </Link>
           )
