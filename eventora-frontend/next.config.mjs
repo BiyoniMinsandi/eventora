@@ -3,11 +3,6 @@ import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-// API_URL is a server-side env var — never exposed to the browser.
-// Frontend calls /backend/:path* and Next.js proxies to the real backend.
-// Set NEXT_PUBLIC_API_URL to override with a direct URL (e.g. local dev).
-const API_PROXY_TARGET = process.env.API_URL || 'http://localhost:5125'
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   turbopack: {
@@ -19,14 +14,16 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  async rewrites() {
-    return [
-      {
-        source: '/backend/:path*',
-        destination: `${API_PROXY_TARGET}/:path*`,
-      },
-    ]
-  },
+  // Proxy /backend/* → real backend. Only active when API_URL is set (e.g. on Vercel).
+  // Without it the frontend uses NEXT_PUBLIC_API_URL (local dev) or shows a fetch error.
+  ...(process.env.API_URL
+    ? {
+        async rewrites() {
+          const target = process.env.API_URL.replace(/\/+$/, '')
+          return [{ source: '/backend/:path*', destination: `${target}/:path*` }]
+        },
+      }
+    : {}),
 }
 
 export default nextConfig
