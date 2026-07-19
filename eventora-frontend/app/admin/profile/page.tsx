@@ -6,8 +6,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react'
-import { Header } from '@/components/layout/header'
-import { Footer } from '@/components/layout/footer'
+import { Sidebar } from '@/components/layout/sidebar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -120,19 +119,14 @@ export default function AdminProfilePage() {
   }
 
   return (
-    <>
-      <Header />
-      <main className="flex-1 bg-muted/20">
-        {/* Header */}
-        <div className="bg-white border-b border-border sticky top-16 z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="flex h-screen bg-background">
+      <Sidebar userRole="admin" />
+      <main className="flex-1 overflow-y-auto bg-muted/20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground">Admin Profile</h1>
-            <p className="text-muted-foreground mt-2">Manage your account settings and security</p>
+            <p className="text-muted-foreground mt-1">Manage your account settings and security</p>
           </div>
-        </div>
-
-        {/* Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Tabs defaultValue="profile" className="space-y-8">
             <TabsList className="bg-white border border-border p-1">
               <TabsTrigger value="profile" className="gap-2">
@@ -448,7 +442,6 @@ export default function AdminProfilePage() {
           </Tabs>
         </div>
       </main>
-      <Footer />
-    </>
+    </div>
   )
 }
