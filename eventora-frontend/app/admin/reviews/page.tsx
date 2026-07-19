@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -80,6 +81,7 @@ export default function AdminReviewsPage() {
   }
 
   return (
+    <ProtectedRoute allowedRoles={['admin']}>
     <div className="flex h-screen bg-background">
       <Sidebar userRole="admin" />
 
@@ -200,5 +202,6 @@ export default function AdminReviewsPage() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   )
 }

@@ -9,6 +9,7 @@
 
 import Link from 'next/link'
 import { Sidebar } from '@/components/layout/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -133,6 +134,7 @@ export default function VendorRequestsPage() {
   }
 
   return (
+    <ProtectedRoute allowedRoles={['vendor']}>
     <div className="flex h-screen bg-background">
       <Sidebar userRole="vendor" userName={user?.businessName || user?.fullName || 'Vendor'} onLogout={handleLogout} />
 
@@ -306,5 +308,6 @@ export default function VendorRequestsPage() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   )
 }

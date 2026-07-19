@@ -6,6 +6,7 @@
  */
 
 import { Sidebar } from '@/components/layout/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -82,6 +83,7 @@ export default function AdminReportsPage() {
   ]
 
   return (
+    <ProtectedRoute allowedRoles={['admin']}>
     <div className="flex h-screen bg-background">
       <Sidebar userRole="admin" userName="Admin User" />
 
@@ -249,5 +251,6 @@ export default function AdminReportsPage() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   )
 }

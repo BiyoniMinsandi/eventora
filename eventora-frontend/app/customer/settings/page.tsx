@@ -8,6 +8,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -58,6 +59,7 @@ export default function CustomerSettings() {
   }
 
   return (
+    <ProtectedRoute allowedRoles={['customer']}>
     <div className="flex h-screen bg-background">
       <Sidebar userRole="customer" />
 
@@ -382,5 +384,6 @@ export default function CustomerSettings() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   )
 }

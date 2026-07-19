@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -33,6 +34,7 @@ export default function VendorNotificationsPage() {
   const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [selectedTab, setSelectedTab] = useState<'all' | 'approval' | 'bookings'>('all')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!user) return
@@ -43,6 +45,7 @@ export default function VendorNotificationsPage() {
       const userNotifications = await getUserNotifications(user.id)
       if (cancelled) return
       setNotifications(userNotifications)
+      setLoading(false)
     })()
 
     return () => {
@@ -111,6 +114,7 @@ export default function VendorNotificationsPage() {
   const filteredNotifications = filterNotifications()
 
   return (
+    <ProtectedRoute allowedRoles={['vendor']}>
     <div className="flex h-screen bg-background">
       <Sidebar userRole="vendor" userName={user?.businessName || user?.fullName || 'Vendor'} onLogout={handleLogout} />
 
@@ -150,7 +154,11 @@ export default function VendorNotificationsPage() {
 
           {/* Notifications List */}
           <div className="space-y-3 max-w-3xl">
-            {filteredNotifications.length === 0 ? (
+            {loading ? (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">Loading notifications...</p>
+              </Card>
+            ) : filteredNotifications.length === 0 ? (
               <Card className="p-8 text-center">
                 <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">No Notifications</h3>
@@ -209,5 +217,6 @@ export default function VendorNotificationsPage() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   )
 }

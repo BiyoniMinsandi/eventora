@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -263,6 +264,7 @@ export default function AdminAnalytics() {
   }
 
   return (
+    <ProtectedRoute allowedRoles={['admin']}>
     <div className="flex h-screen bg-background">
       <Sidebar userRole="admin" />
 
@@ -561,5 +563,6 @@ export default function AdminAnalytics() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   )
 }

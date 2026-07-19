@@ -11,6 +11,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -510,14 +511,16 @@ export default function CustomerDisputesPage() {
   // Next.js requires `useSearchParams()` to be used under a Suspense boundary.
   // Keeping the hook in the inner component avoids prerender build errors.
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-          Loading...
-        </div>
-      }
-    >
-      <CustomerDisputesContent />
-    </Suspense>
+    <ProtectedRoute allowedRoles={['customer']}>
+      <Suspense
+        fallback={
+          <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+            Loading...
+          </div>
+        }
+      >
+        <CustomerDisputesContent />
+      </Suspense>
+    </ProtectedRoute>
   )
 }

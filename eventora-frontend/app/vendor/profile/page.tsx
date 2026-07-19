@@ -11,6 +11,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -202,6 +203,7 @@ export default function VendorProfilePage() {
   if (!user) return null
 
   return (
+    <ProtectedRoute allowedRoles={['vendor']}>
     <div className="flex h-screen bg-background">
       <Sidebar userRole="vendor" />
 
@@ -543,5 +545,6 @@ export default function VendorProfilePage() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   )
 }

@@ -7,6 +7,7 @@
 
 import Link from 'next/link'
 import { Sidebar } from '@/components/layout/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -177,6 +178,7 @@ export default function CustomerBookingsPage() {
   }
 
   return (
+    <ProtectedRoute allowedRoles={['customer']}>
     <div className="flex h-screen bg-background">
       <Sidebar userRole="customer" userName={user?.fullName || 'Customer'} onLogout={handleLogout} />
 
@@ -368,6 +370,7 @@ export default function CustomerBookingsPage() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   )
 }
 

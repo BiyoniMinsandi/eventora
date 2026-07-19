@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar } from '@/components/ui/calendar'
@@ -62,6 +63,7 @@ export default function VendorAvailability() {
   const sorted = [...blockedDates].sort((a, b) => a.getTime() - b.getTime())
 
   return (
+    <ProtectedRoute allowedRoles={['vendor']}>
     <div className="flex h-screen bg-background">
       <Sidebar userRole="vendor" />
 
@@ -182,5 +184,6 @@ export default function VendorAvailability() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   )
 }

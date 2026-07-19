@@ -8,6 +8,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -146,6 +147,7 @@ export default function VendorAnalytics() {
   }
 
   return (
+    <ProtectedRoute allowedRoles={['vendor']}>
     <div className="flex h-screen bg-background">
       <Sidebar userRole="vendor" />
 
@@ -377,5 +379,6 @@ export default function VendorAnalytics() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   )
 }

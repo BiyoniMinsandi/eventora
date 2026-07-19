@@ -7,6 +7,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Sidebar } from '@/components/layout/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -119,6 +120,7 @@ export default function AdminProfilePage() {
   }
 
   return (
+    <ProtectedRoute allowedRoles={['admin']}>
     <div className="flex h-screen bg-background">
       <Sidebar userRole="admin" />
       <main className="flex-1 overflow-y-auto bg-muted/20">
@@ -443,5 +445,6 @@ export default function AdminProfilePage() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   )
 }

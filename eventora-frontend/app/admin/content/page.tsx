@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
+import { ProtectedRoute } from '@/components/protected-route'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -45,6 +46,7 @@ export default function AdminContent() {
   }, [])
 
   return (
+    <ProtectedRoute allowedRoles={['admin']}>
     <div className="flex h-screen bg-background">
       <Sidebar userRole="admin" />
 
@@ -279,5 +281,6 @@ export default function AdminContent() {
           </div>
         </main>
       </div>
+    </ProtectedRoute>
     )
 }
