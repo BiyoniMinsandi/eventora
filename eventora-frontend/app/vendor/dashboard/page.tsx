@@ -106,6 +106,22 @@ export default function VendorDashboard() {
   const getPendingBookings = () => bookings.filter(b => b.status === 'pending')
   const getAcceptedBookings = () => bookings.filter(b => b.status === 'accepted')
 
+  // Profile completeness
+  const profileFields = [
+    { label: 'Business Name', filled: !!user?.businessName?.trim() },
+    { label: 'Category', filled: !!user?.category },
+    { label: 'Location', filled: !!user?.location },
+    { label: 'Phone', filled: !!user?.phone?.trim() },
+    { label: 'Description', filled: (user?.description?.length ?? 0) > 10 },
+    { label: 'Pricing', filled: !!user?.pricing?.trim() },
+    { label: 'Experience', filled: !!user?.experience?.trim() },
+    { label: 'Portfolio photo', filled: (user?.photos?.length ?? 0) > 0 },
+    { label: 'Service listed', filled: (user?.services?.length ?? 0) > 0 },
+  ]
+  const filledCount = profileFields.filter(f => f.filled).length
+  const completionPct = Math.round((filledCount / profileFields.length) * 100)
+  const missingFields = profileFields.filter(f => !f.filled).map(f => f.label)
+
   return (
     <ProtectedRoute allowedRoles={['vendor']}>
       <div className="flex h-screen bg-background">
@@ -246,6 +262,38 @@ export default function VendorDashboard() {
 
             {/* Quick Actions */}
             <div className="space-y-4">
+              {/* Profile Completeness */}
+              {completionPct < 100 && (
+                <Card className="p-5 border-primary/30 bg-primary/5">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-bold text-foreground text-sm">Profile Completeness</h3>
+                    <span className={`text-sm font-bold ${completionPct < 50 ? 'text-red-500' : completionPct < 80 ? 'text-amber-500' : 'text-primary'}`}>
+                      {completionPct}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2 mb-3">
+                    <div
+                      className={`h-2 rounded-full transition-all ${completionPct < 50 ? 'bg-red-400' : completionPct < 80 ? 'bg-amber-400' : 'bg-primary'}`}
+                      style={{ width: `${completionPct}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Complete your profile to attract more customers.
+                  </p>
+                  {missingFields.length > 0 && (
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Missing: {missingFields.slice(0, 3).join(', ')}{missingFields.length > 3 ? ` +${missingFields.length - 3} more` : ''}
+                    </p>
+                  )}
+                  <Button asChild size="sm" className="w-full gap-2">
+                    <Link href="/vendor/profile">
+                      <Percent className="w-3 h-3" />
+                      Complete Profile
+                    </Link>
+                  </Button>
+                </Card>
+              )}
+
               <Card className="p-6">
                 <h3 className="font-bold text-foreground mb-4">Quick Actions</h3>
                 <div className="space-y-3">

@@ -121,6 +121,62 @@ internal static class DisputesEndpoints
             return Results.Ok(DisputeDtoMapping.ToDto(dispute));
         }).RequireAuthorization("CustomerOnly");
 
+        // Vendor-initiated report about a customer (misbehavior, disruption, etc.)
+        group.MapPost("/vendor-report", async (
+            CreateDisputeRequest req,
+            ClaimsPrincipal principal,
+            IUserRepository users,
+            IBookingRepository bookings,
+            IDisputeRepository disputes,
+            INotificationRepository notifications,
+            CancellationToken ct) =>
+        {
+            var userId = CurrentUser.TryGetUserId(principal);
+            if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+            var vendor = await users.GetByIdAsync(userId, ct);
+            if (vendor is null) return Results.Unauthorized();
+
+            var booking = await bookings.GetByIdAsync(req.BookingId, ct);
+            if (booking is null) return Results.NotFound(new { message = "Booking not found" });
+            if (booking.VendorId != userId) return Results.Forbid();
+
+            if (booking.Status != BookingStatus.Accepted && booking.Status != BookingStatus.Completed)
+                return Results.BadRequest(new { message = "You can only report customers for accepted or completed bookings" });
+
+            if (!TryParseCategory(req.Category ?? "behavior", out var category))
+                category = DisputeCategory.Behavior;
+
+            var dispute = new Dispute
+            {
+                BookingId = booking.Id,
+                CustomerId = booking.CustomerId,
+                CustomerName = booking.CustomerName,
+                VendorId = vendor.Id,
+                VendorName = vendor.BusinessName ?? vendor.FullName,
+                Title = "[Vendor Report] " + req.Title.Trim(),
+                Description = req.Description.Trim(),
+                Category = category,
+                Evidence = req.Evidence ?? [],
+                Status = DisputeStatus.Open,
+                Priority = DisputePriority.Medium,
+            };
+
+            await disputes.CreateAsync(dispute, ct);
+
+            await NotificationHelpers.CreateAsync(
+                notifications,
+                booking.CustomerId,
+                NotificationType.DisputeUpdate,
+                "A vendor has filed a report about you",
+                $"Vendor {vendor.BusinessName ?? vendor.FullName} filed a report for booking {booking.Id}. An admin will review it.",
+                relatedBookingId: booking.Id,
+                relatedDisputeId: dispute.Id,
+                ct);
+
+            return Results.Ok(DisputeDtoMapping.ToDto(dispute));
+        }).RequireAuthorization("VendorOnly");
+
         // Dispute messages — accessible by participants and admin
         group.MapGet("/{id}/messages", async (
             string id,

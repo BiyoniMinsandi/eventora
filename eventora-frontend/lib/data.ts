@@ -376,6 +376,23 @@ export async function createDispute(
   }
 }
 
+export async function reportCustomer(
+  bookingId: string,
+  title: string,
+  description: string,
+  category: string = 'behavior'
+): Promise<{ success: boolean; message: string; dispute?: Dispute }> {
+  try {
+    const dispute = await apiFetch<Dispute>(`/api/disputes/vendor-report`, {
+      method: 'POST',
+      body: { bookingId, title, description, category },
+    })
+    return { success: true, message: 'Report submitted. An admin will review it.', dispute }
+  } catch (e: any) {
+    return { success: false, message: e?.message || 'Failed to submit report' }
+  }
+}
+
 export async function updateDisputeStatus(disputeId: string, status: Dispute['status'], resolution?: string): Promise<boolean> {
   await apiFetch(`/api/admin/disputes/${disputeId}`, {
     method: 'PATCH',

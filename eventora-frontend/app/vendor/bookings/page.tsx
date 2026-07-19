@@ -10,17 +10,37 @@ import { Sidebar } from '@/components/layout/sidebar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Calendar, CheckCircle2, Clock, MessageCircle, ArrowLeft } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Calendar, CheckCircle2, Clock, MessageCircle, ArrowLeft, Flag } from 'lucide-react'
 import { ProtectedRoute } from '@/components/protected-route'
 import { useAuth } from '@/components/auth-provider'
 import { useEffect, useState } from 'react'
-import { getUserBookings, type Booking, getOrCreateConversation, updateBookingStatus } from '@/lib/data'
+import { getUserBookings, type Booking, getOrCreateConversation, updateBookingStatus, reportCustomer } from '@/lib/data'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/hooks/use-toast'
+
+interface ReportState {
+  bookingId: string
+  customerName: string
+  title: string
+  description: string
+  category: string
+  submitting: boolean
+}
 
 export default function VendorBookingsPage() {
   const { user } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
   const [bookings, setBookings] = useState<Booking[]>([])
+  const [reportDialog, setReportDialog] = useState<ReportState | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -88,6 +108,39 @@ export default function VendorBookingsPage() {
   const handleMarkCompleted = async (booking: Booking) => {
     await updateBookingStatus(booking.id, 'completed')
     setBookings((prev) => prev.map((b) => (b.id === booking.id ? { ...b, status: 'completed' } : b)))
+  }
+
+  const openReportDialog = (booking: Booking) => {
+    setReportDialog({
+      bookingId: booking.id,
+      customerName: booking.customerName || 'Customer',
+      title: '',
+      description: '',
+      category: 'behavior',
+      submitting: false,
+    })
+  }
+
+  const submitReport = async () => {
+    if (!reportDialog) return
+    if (!reportDialog.title.trim() || !reportDialog.description.trim()) {
+      toast({ title: 'Please fill in all fields', variant: 'destructive' })
+      return
+    }
+    setReportDialog(d => d ? { ...d, submitting: true } : d)
+    const result = await reportCustomer(
+      reportDialog.bookingId,
+      reportDialog.title,
+      reportDialog.description,
+      reportDialog.category
+    )
+    setReportDialog(d => d ? { ...d, submitting: false } : d)
+    if (result.success) {
+      toast({ title: 'Report submitted', description: result.message })
+      setReportDialog(null)
+    } else {
+      toast({ title: 'Error', description: result.message, variant: 'destructive' })
+    }
   }
 
   return (
@@ -190,6 +243,17 @@ export default function VendorBookingsPage() {
                                 View Details
                               </Link>
                             </Button>
+                            {(booking.status === 'accepted' || booking.status === 'completed') && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="bg-transparent gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                                onClick={() => openReportDialog(booking)}
+                              >
+                                <Flag className="w-4 h-4" />
+                                Report Customer
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </Card>
@@ -207,6 +271,72 @@ export default function VendorBookingsPage() {
           </div>
         </main>
       </div>
+      {/* Report Customer Dialog */}
+      <Dialog open={!!reportDialog} onOpenChange={open => { if (!open) setReportDialog(null) }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Flag className="w-5 h-5 text-red-500" />
+              Report Customer
+            </DialogTitle>
+            <DialogDescription>
+              {reportDialog && `Report a complaint about ${reportDialog.customerName}. An admin will review your report.`}
+            </DialogDescription>
+          </DialogHeader>
+          {reportDialog && (
+            <div className="space-y-4 mt-2">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Category</label>
+                <select
+                  value={reportDialog.category}
+                  onChange={e => setReportDialog(d => d ? { ...d, category: e.target.value } : d)}
+                  className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm text-foreground"
+                >
+                  <option value="behavior">Disruptive Behavior</option>
+                  <option value="payment">Payment Issue</option>
+                  <option value="damage">Property Damage</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Subject</label>
+                <Input
+                  placeholder="Brief description of the issue"
+                  value={reportDialog.title}
+                  onChange={e => setReportDialog(d => d ? { ...d, title: e.target.value } : d)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Details</label>
+                <textarea
+                  placeholder="Describe what happened in detail..."
+                  value={reportDialog.description}
+                  onChange={e => setReportDialog(d => d ? { ...d, description: e.target.value } : d)}
+                  className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                  rows={4}
+                />
+              </div>
+              <div className="flex gap-3 pt-1">
+                <Button
+                  variant="outline"
+                  className="flex-1 bg-transparent"
+                  onClick={() => setReportDialog(null)}
+                  disabled={reportDialog.submitting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  onClick={submitReport}
+                  disabled={reportDialog.submitting}
+                >
+                  {reportDialog.submitting ? 'Submitting...' : 'Submit Report'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </ProtectedRoute>
   )
 }
