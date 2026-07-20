@@ -164,7 +164,6 @@ export default function AboutPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg"><Link href="/vendors">Browse Vendors</Link></Button>
               <Button variant="outline" asChild size="lg" className="bg-transparent"><Link href="/register">Become a Vendor</Link></Button>
-              <Button className= "bg-blue-500 text-white" onClick={() =>router.push('/admin/users')}>Click Me</Button>
             </div>
           </div>
         </section>
