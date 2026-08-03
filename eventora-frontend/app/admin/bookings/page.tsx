@@ -17,9 +17,10 @@ import { Input } from '@/components/ui/input'
 import { ProtectedRoute } from '@/components/protected-route'
 import { useAuth } from '@/components/auth-provider'
 import { logoutUser } from '@/lib/auth'
-import { getBookings, type Booking } from '@/lib/data'
-import { ArrowLeft, Search, Calendar, User, Briefcase } from 'lucide-react'
+import { getBookings, type Booking, approveCancellation, rejectCancellation } from '@/lib/data'
+import { ArrowLeft, Search, Calendar, User, Briefcase, CheckCircle2, XCircle, FileText, ExternalLink } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useToast } from '@/hooks/use-toast'
 
 const STATUS_COLORS: Record<Booking['status'], string> = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -27,11 +28,13 @@ const STATUS_COLORS: Record<Booking['status'], string> = {
   rejected: 'bg-red-100 text-red-800',
   completed: 'bg-blue-100 text-blue-800',
   cancelled: 'bg-gray-100 text-gray-800',
+  cancellation_pending: 'bg-orange-100 text-orange-800',
 }
 
 export default function AdminBookingsPage() {
   const { user } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [filtered, setFiltered] = useState<Booking[]>([])
   const [search, setSearch] = useState('')
@@ -78,6 +81,26 @@ export default function AdminBookingsPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
   const paginatedBookings = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
+  const handleApproveCancellation = async (bookingId: string) => {
+    const result = await approveCancellation(bookingId)
+    if (result.success) {
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'cancelled' } : b))
+      toast({ title: 'Cancellation approved', description: 'Booking has been cancelled.' })
+    } else {
+      toast({ title: 'Error', description: result.message, variant: 'destructive' })
+    }
+  }
+
+  const handleRejectCancellation = async (bookingId: string) => {
+    const result = await rejectCancellation(bookingId)
+    if (result.success) {
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'accepted', cancellationRequestedBy: undefined, cancellationReason: undefined } : b))
+      toast({ title: 'Cancellation rejected', description: 'Booking restored to accepted.' })
+    } else {
+      toast({ title: 'Error', description: result.message, variant: 'destructive' })
+    }
+  }
+
   const counts = {
     all: bookings.length,
     pending: bookings.filter((b) => b.status === 'pending').length,
@@ -85,6 +108,7 @@ export default function AdminBookingsPage() {
     completed: bookings.filter((b) => b.status === 'completed').length,
     rejected: bookings.filter((b) => b.status === 'rejected').length,
     cancelled: bookings.filter((b) => b.status === 'cancelled').length,
+    cancellation_pending: bookings.filter((b) => b.status === 'cancellation_pending').length,
   }
 
   return (
@@ -183,13 +207,41 @@ export default function AdminBookingsPage() {
                             Vendor note: {booking.vendorResponseNote}
                           </p>
                         )}
+                        {booking.status === 'cancellation_pending' && (
+                          <div className="mt-2 p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg space-y-1">
+                            <p className="text-xs font-semibold text-orange-800 dark:text-orange-300">
+                              Cancellation requested by: {booking.cancellationRequestedBy}
+                            </p>
+                            <p className="text-xs text-orange-700 dark:text-orange-400">
+                              Reason: {booking.cancellationReason}
+                            </p>
+                            {booking.vendorRefundConfirmed && (
+                              <p className="text-xs text-green-700 dark:text-green-400 font-medium">✓ Vendor confirmed refund</p>
+                            )}
+                            {booking.cancellationProofUrl && (
+                              <a href={booking.cancellationProofUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline flex items-center gap-1">
+                                <ExternalLink className="w-3 h-3" /> View proof
+                              </a>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      <div className="text-right shrink-0">
+                      <div className="text-right shrink-0 space-y-2">
                         <p className="text-xs text-muted-foreground">
                           {new Date(booking.createdAt).toLocaleDateString()}
                         </p>
                         {booking.budget && (
                           <p className="text-sm font-medium">{booking.budget}</p>
+                        )}
+                        {booking.status === 'cancellation_pending' && (
+                          <div className="flex flex-col gap-1.5">
+                            <Button size="sm" className="gap-1.5 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleApproveCancellation(booking.id)}>
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Approve
+                            </Button>
+                            <Button size="sm" variant="outline" className="gap-1.5 text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleRejectCancellation(booking.id)}>
+                              <XCircle className="w-3.5 h-3.5" /> Reject
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </div>

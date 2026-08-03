@@ -18,11 +18,13 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Calendar, CheckCircle2, Clock, MessageCircle, ArrowLeft, Flag } from 'lucide-react'
+import { Calendar, CheckCircle2, Clock, MessageCircle, ArrowLeft, Flag, Upload, X } from 'lucide-react'
 import { ProtectedRoute } from '@/components/protected-route'
 import { useAuth } from '@/components/auth-provider'
 import { useEffect, useState } from 'react'
-import { getUserBookings, type Booking, getOrCreateConversation, updateBookingStatus, reportCustomer } from '@/lib/data'
+import { getUserBookings, type Booking, getOrCreateConversation, updateBookingStatus, reportCustomer, requestCancellation } from '@/lib/data'
+import { uploadFile } from '@/lib/api'
+import { useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 
@@ -41,6 +43,13 @@ export default function VendorBookingsPage() {
   const { toast } = useToast()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [reportDialog, setReportDialog] = useState<ReportState | null>(null)
+  const [cancelRequestDialog, setCancelRequestDialog] = useState<Booking | null>(null)
+  const [cancelReason, setCancelReason] = useState('')
+  const [cancelProofUrl, setCancelProofUrl] = useState('')
+  const [refundConfirmed, setRefundConfirmed] = useState(false)
+  const [uploadingProof, setUploadingProof] = useState(false)
+  const [submittingCancel, setSubmittingCancel] = useState(false)
+  const proofInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!user) return
@@ -119,6 +128,39 @@ export default function VendorBookingsPage() {
       category: 'behavior',
       submitting: false,
     })
+  }
+
+  const handleProofUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingProof(true)
+    try {
+      const { url } = await uploadFile('/api/upload/document', file)
+      setCancelProofUrl(url)
+    } catch {
+      toast({ title: 'Upload failed', variant: 'destructive' })
+    } finally {
+      setUploadingProof(false)
+    }
+  }
+
+  const handleSubmitCancelRequest = async () => {
+    if (!cancelRequestDialog) return
+    if (!cancelReason.trim()) { toast({ title: 'Please provide a cancellation reason', variant: 'destructive' }); return }
+    if (!refundConfirmed) { toast({ title: 'You must confirm you will refund the customer', variant: 'destructive' }); return }
+    setSubmittingCancel(true)
+    const result = await requestCancellation(cancelRequestDialog.id, cancelReason, cancelProofUrl || undefined, true)
+    setSubmittingCancel(false)
+    if (result.success) {
+      setBookings(prev => prev.map(b => b.id === cancelRequestDialog.id ? { ...b, status: 'cancellation_pending' } : b))
+      setCancelRequestDialog(null)
+      setCancelReason('')
+      setCancelProofUrl('')
+      setRefundConfirmed(false)
+      toast({ title: 'Cancellation request submitted', description: 'An admin will review and process it.' })
+    } else {
+      toast({ title: 'Error', description: result.message, variant: 'destructive' })
+    }
   }
 
   const submitReport = async () => {
@@ -221,6 +263,12 @@ export default function VendorBookingsPage() {
                             </div>
                           </div>
 
+                          {booking.status === 'cancellation_pending' && (
+                            <div className="mt-2 mb-1 px-3 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900 rounded-lg">
+                              <p className="text-xs font-medium text-amber-700 dark:text-amber-400">Cancellation under admin review</p>
+                            </div>
+                          )}
+
                           <div className="flex flex-col gap-2 mt-4 md:mt-0">
                             {(booking.status === 'accepted' || booking.status === 'completed') && (
                               <Button
@@ -236,6 +284,17 @@ export default function VendorBookingsPage() {
                             {booking.status === 'accepted' && (
                               <Button size="sm" onClick={() => handleMarkCompleted(booking)}>
                                 Mark Completed
+                              </Button>
+                            )}
+                            {booking.status === 'accepted' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="bg-transparent gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                                onClick={() => { setCancelRequestDialog(booking); setCancelReason(''); setCancelProofUrl(''); setRefundConfirmed(false) }}
+                              >
+                                <X className="w-4 h-4" />
+                                Request Cancellation
                               </Button>
                             )}
                             <Button size="sm" asChild>
@@ -271,6 +330,65 @@ export default function VendorBookingsPage() {
           </div>
         </main>
       </div>
+      {/* Cancellation request dialog */}
+      {cancelRequestDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-bold mb-1">Request Cancellation</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Provide a reason and confirm refund. An admin will review this request.
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium block mb-1">Reason <span className="text-red-500">*</span></label>
+                <textarea
+                  value={cancelReason}
+                  onChange={e => setCancelReason(e.target.value)}
+                  placeholder="Explain why you need to cancel..."
+                  rows={4}
+                  className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Proof (optional)</label>
+                <input ref={proofInputRef} type="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" className="hidden" onChange={handleProofUpload} />
+                {cancelProofUrl ? (
+                  <div className="flex items-center gap-2 text-sm text-green-700">
+                    <span>File uploaded</span>
+                    <button onClick={() => setCancelProofUrl('')} className="text-muted-foreground hover:text-destructive text-xs underline">Remove</button>
+                  </div>
+                ) : (
+                  <Button type="button" variant="outline" size="sm" className="gap-2 bg-transparent" onClick={() => proofInputRef.current?.click()} disabled={uploadingProof}>
+                    <Upload className="w-4 h-4" />
+                    {uploadingProof ? 'Uploading…' : 'Upload proof'}
+                  </Button>
+                )}
+              </div>
+              <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="refund-confirm"
+                  checked={refundConfirmed}
+                  onChange={e => setRefundConfirmed(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 cursor-pointer"
+                />
+                <label htmlFor="refund-confirm" className="text-sm text-amber-800 dark:text-amber-300 cursor-pointer">
+                  I confirm that I will refund any payment made by the customer for this booking.
+                </label>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-5">
+              <Button variant="outline" className="flex-1 bg-transparent" onClick={() => setCancelRequestDialog(null)} disabled={submittingCancel}>
+                Back
+              </Button>
+              <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white" onClick={handleSubmitCancelRequest} disabled={submittingCancel}>
+                {submittingCancel ? 'Submitting…' : 'Submit Request'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Report Customer Dialog */}
       <Dialog open={!!reportDialog} onOpenChange={open => { if (!open) setReportDialog(null) }}>
         <DialogContent className="max-w-md">

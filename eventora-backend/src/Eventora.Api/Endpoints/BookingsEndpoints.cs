@@ -299,6 +299,57 @@ internal static class BookingsEndpoints
             return Results.Ok(BookingDtoMapping.ToDto(booking));
         }).RequireAuthorization("CustomerOnly");
 
+        group.MapPost("/{id}/request-cancellation", async (
+            string id,
+            CancellationRequest req,
+            ClaimsPrincipal principal,
+            IUserRepository users,
+            IBookingRepository bookings,
+            INotificationRepository notifications,
+            CancellationToken ct) =>
+        {
+            var userId = CurrentUser.TryGetUserId(principal);
+            if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
+
+            var booking = await bookings.GetByIdAsync(id, ct);
+            if (booking is null) return Results.NotFound(new { message = "Booking not found" });
+
+            var isCustomer = booking.CustomerId == userId;
+            var isVendor   = booking.VendorId == userId;
+            if (!isCustomer && !isVendor) return Results.Forbid();
+            if (booking.Status != BookingStatus.Accepted)
+                return Results.BadRequest(new { message = "Only accepted bookings can be cancelled this way" });
+
+            if (string.IsNullOrWhiteSpace(req.Reason))
+                return Results.BadRequest(new { message = "A cancellation reason is required" });
+
+            if (isVendor && !req.RefundConfirmed)
+                return Results.BadRequest(new { message = "Vendors must confirm they will refund the customer before requesting cancellation" });
+
+            booking.Status = BookingStatus.CancellationPending;
+            booking.CancellationRequestedBy = isCustomer ? "customer" : "vendor";
+            booking.CancellationReason = req.Reason.Trim();
+            booking.CancellationProofUrl = string.IsNullOrWhiteSpace(req.ProofUrl) ? null : req.ProofUrl.Trim();
+            booking.VendorRefundConfirmed = req.RefundConfirmed;
+            booking.CancellationRequestedAt = DateTimeOffset.UtcNow;
+            await bookings.UpdateAsync(booking, ct);
+
+            // Notify the other party
+            var notifyUserId = isCustomer ? booking.VendorId : booking.CustomerId;
+            var requesterLabel = isCustomer ? booking.CustomerName : booking.VendorBusinessName;
+            await NotificationHelpers.CreateAsync(
+                notifications,
+                notifyUserId,
+                NotificationType.BookingRejected,
+                "Cancellation requested",
+                $"{requesterLabel} has requested to cancel the booking for {booking.EventDate}. Awaiting admin review.",
+                relatedBookingId: booking.Id,
+                relatedDisputeId: null,
+                ct);
+
+            return Results.Ok(BookingDtoMapping.ToDto(booking));
+        }).RequireAuthorization();
+
         group.MapPost("/{id}/complete", async (
             string id,
             ClaimsPrincipal principal,
@@ -363,6 +414,74 @@ internal static class BookingsEndpoints
         {
             var all = await bookings.GetAllAsync(ct);
             return Results.Ok(all.Select(BookingDtoMapping.ToDto));
+        });
+
+        admin.MapPost("/{id}/approve-cancellation", async (
+            string id,
+            IBookingRepository bookings,
+            INotificationRepository notifications,
+            IEmailService email,
+            IUserRepository users,
+            CancellationToken ct) =>
+        {
+            var booking = await bookings.GetByIdAsync(id, ct);
+            if (booking is null) return Results.NotFound(new { message = "Booking not found" });
+            if (booking.Status != BookingStatus.CancellationPending)
+                return Results.BadRequest(new { message = "Booking does not have a pending cancellation request" });
+
+            booking.Status = BookingStatus.Cancelled;
+            await bookings.UpdateAsync(booking, ct);
+
+            await NotificationHelpers.CreateAsync(notifications, booking.CustomerId,
+                NotificationType.BookingRejected, "Booking cancelled",
+                $"Your booking with {booking.VendorBusinessName} on {booking.EventDate} has been cancelled by admin.",
+                relatedBookingId: booking.Id, relatedDisputeId: null, ct);
+
+            await NotificationHelpers.CreateAsync(notifications, booking.VendorId,
+                NotificationType.BookingRejected, "Booking cancelled",
+                $"The booking with {booking.CustomerName} on {booking.EventDate} has been cancelled by admin.",
+                relatedBookingId: booking.Id, relatedDisputeId: null, ct);
+
+            var customer = await users.GetByIdAsync(booking.CustomerId, ct);
+            if (customer is not null)
+            {
+                await email.SendAsync(customer.Email, customer.FullName,
+                    "Booking Cancelled — Eventora",
+                    $"<p>Hi {customer.FullName},</p>" +
+                    $"<p>Your booking for <strong>{booking.Service}</strong> on <strong>{booking.EventDate}</strong> with <strong>{booking.VendorBusinessName}</strong> has been cancelled.</p>" +
+                    (booking.VendorRefundConfirmed ? "<p>The vendor has confirmed a refund will be processed.</p>" : "") +
+                    $"<p>If you have any questions, please contact support.</p>", ct);
+            }
+
+            return Results.Ok(BookingDtoMapping.ToDto(booking));
+        });
+
+        admin.MapPost("/{id}/reject-cancellation", async (
+            string id,
+            IBookingRepository bookings,
+            INotificationRepository notifications,
+            CancellationToken ct) =>
+        {
+            var booking = await bookings.GetByIdAsync(id, ct);
+            if (booking is null) return Results.NotFound(new { message = "Booking not found" });
+            if (booking.Status != BookingStatus.CancellationPending)
+                return Results.BadRequest(new { message = "Booking does not have a pending cancellation request" });
+
+            booking.Status = BookingStatus.Accepted;
+            booking.CancellationRequestedBy = null;
+            booking.CancellationReason = null;
+            booking.CancellationProofUrl = null;
+            booking.VendorRefundConfirmed = false;
+            booking.CancellationRequestedAt = null;
+            await bookings.UpdateAsync(booking, ct);
+
+            var notifyId = booking.CancellationRequestedBy == "customer" ? booking.CustomerId : booking.VendorId;
+            await NotificationHelpers.CreateAsync(notifications, notifyId,
+                NotificationType.BookingRejected, "Cancellation request rejected",
+                $"Your cancellation request for the booking on {booking.EventDate} was reviewed and rejected by admin. The booking remains active.",
+                relatedBookingId: booking.Id, relatedDisputeId: null, ct);
+
+            return Results.Ok(BookingDtoMapping.ToDto(booking));
         });
     }
 }

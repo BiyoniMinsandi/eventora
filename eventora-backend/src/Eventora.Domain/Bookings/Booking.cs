@@ -36,6 +36,21 @@ public sealed class Booking : EntityBase
 
     public string? VendorResponseNote { get; set; }
 
+    // ── Cancellation request fields ───────────────────────────────────────────
+
+    /// <summary>"customer" or "vendor" — who initiated the cancellation request.</summary>
+    public string? CancellationRequestedBy { get; set; }
+
+    public string? CancellationReason { get; set; }
+
+    /// <summary>Cloudinary URL of any uploaded proof document or image.</summary>
+    public string? CancellationProofUrl { get; set; }
+
+    /// <summary>Vendor explicitly confirmed they will refund the customer.</summary>
+    public bool VendorRefundConfirmed { get; set; }
+
+    public DateTimeOffset? CancellationRequestedAt { get; set; }
+
     // ── Payment fields ────────────────────────────────────────────────────────
 
     /// <summary>ID of the linked Payment document, populated when checkout is initiated.</summary>

@@ -32,9 +32,19 @@ public sealed record BookingDto(
     long? AmountInCents,
     string Currency,
     string CreatedAt,
-    string UpdatedAt);
+    string UpdatedAt,
+    string? CancellationRequestedBy,
+    string? CancellationReason,
+    string? CancellationProofUrl,
+    bool VendorRefundConfirmed,
+    string? CancellationRequestedAt);
 
 public sealed record BookingDecisionRequest(string? VendorResponseNote);
+
+public sealed record CancellationRequest(
+    [property: Required] string Reason,
+    string? ProofUrl,
+    bool RefundConfirmed);
 
 public static class BookingDtoMapping
 {
@@ -45,6 +55,7 @@ public static class BookingDtoMapping
         BookingStatus.Rejected => "rejected",
         BookingStatus.Completed => "completed",
         BookingStatus.Cancelled => "cancelled",
+        BookingStatus.CancellationPending => "cancellation_pending",
         _ => "pending",
     };
 
@@ -70,6 +81,11 @@ public static class BookingDtoMapping
             booking.AmountInCents,
             booking.Currency,
             booking.CreatedAt.ToString("O"),
-            booking.UpdatedAt.ToString("O"));
+            booking.UpdatedAt.ToString("O"),
+            booking.CancellationRequestedBy,
+            booking.CancellationReason,
+            booking.CancellationProofUrl,
+            booking.VendorRefundConfirmed,
+            booking.CancellationRequestedAt?.ToString("O"));
     }
 }

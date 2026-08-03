@@ -23,10 +23,13 @@ import {
   getReviewByBookingId,
   createCheckoutSession,
   updateBookingStatus,
+  requestCancellation,
 } from '@/lib/data'
+import { uploadFile } from '@/lib/api'
 import { logoutUser } from '@/lib/auth'
 import { ReviewDialog } from '@/components/review-dialog'
-import { CreditCard, Loader2 } from 'lucide-react'
+import { CreditCard, Loader2, Upload } from 'lucide-react'
+import { useRef } from 'react'
 
 export default function CustomerBookingsPage() {
   const { user } = useAuth()
@@ -39,6 +42,12 @@ export default function CustomerBookingsPage() {
   const [enteredAmount, setEnteredAmount] = useState('')
   const [cancelDialog, setCancelDialog] = useState<Booking | null>(null)
   const [cancelling, setCancelling] = useState(false)
+  const [cancelRequestDialog, setCancelRequestDialog] = useState<Booking | null>(null)
+  const [cancelReason, setCancelReason] = useState('')
+  const [cancelProofUrl, setCancelProofUrl] = useState('')
+  const [uploadingProof, setUploadingProof] = useState(false)
+  const [submittingCancelRequest, setSubmittingCancelRequest] = useState(false)
+  const proofInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!user) return
@@ -178,6 +187,36 @@ export default function CustomerBookingsPage() {
     }
   }
 
+  const handleProofUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingProof(true)
+    try {
+      const { url } = await uploadFile('/api/upload/document', file)
+      setCancelProofUrl(url)
+    } catch {
+      alert('Failed to upload proof file')
+    } finally {
+      setUploadingProof(false)
+    }
+  }
+
+  const handleSubmitCancelRequest = async () => {
+    if (!cancelRequestDialog) return
+    if (!cancelReason.trim()) { alert('Please provide a cancellation reason'); return }
+    setSubmittingCancelRequest(true)
+    const result = await requestCancellation(cancelRequestDialog.id, cancelReason, cancelProofUrl || undefined)
+    setSubmittingCancelRequest(false)
+    if (result.success) {
+      setBookings(prev => prev.map(b => b.id === cancelRequestDialog.id ? { ...b, status: 'cancellation_pending' } : b))
+      setCancelRequestDialog(null)
+      setCancelReason('')
+      setCancelProofUrl('')
+    } else {
+      alert(result.message)
+    }
+  }
+
   const handleReviewSubmitted = () => {
     // Refresh bookings to reflect review status
     if (!user) return
@@ -253,6 +292,53 @@ export default function CustomerBookingsPage() {
                 disabled={cancelling}
               >
                 {cancelling ? 'Cancelling…' : 'Yes, Cancel'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Accepted booking cancellation request dialog */}
+      {cancelRequestDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-bold mb-1">Request Cancellation</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              This request will be reviewed by an admin. Please provide a reason and any supporting proof.
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium block mb-1">Reason <span className="text-red-500">*</span></label>
+                <textarea
+                  value={cancelReason}
+                  onChange={e => setCancelReason(e.target.value)}
+                  placeholder="Explain why you need to cancel this booking..."
+                  rows={4}
+                  className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Proof (optional)</label>
+                <input ref={proofInputRef} type="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" className="hidden" onChange={handleProofUpload} />
+                {cancelProofUrl ? (
+                  <div className="flex items-center gap-2 text-sm text-green-700">
+                    <span>File uploaded</span>
+                    <button onClick={() => setCancelProofUrl('')} className="text-muted-foreground hover:text-destructive text-xs underline">Remove</button>
+                  </div>
+                ) : (
+                  <Button type="button" variant="outline" size="sm" className="gap-2 bg-transparent" onClick={() => proofInputRef.current?.click()} disabled={uploadingProof}>
+                    <Upload className="w-4 h-4" />
+                    {uploadingProof ? 'Uploading…' : 'Upload proof'}
+                  </Button>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-3 mt-5">
+              <Button variant="outline" className="flex-1" onClick={() => { setCancelRequestDialog(null); setCancelReason(''); setCancelProofUrl('') }} disabled={submittingCancelRequest}>
+                Back
+              </Button>
+              <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white" onClick={handleSubmitCancelRequest} disabled={submittingCancelRequest}>
+                {submittingCancelRequest ? 'Submitting…' : 'Submit Request'}
               </Button>
             </div>
           </div>
@@ -340,6 +426,21 @@ export default function CustomerBookingsPage() {
                             </div>
                           </div>
 
+                          {/* Rejection reason */}
+                          {booking.status === 'rejected' && booking.vendorResponseNote && (
+                            <div className="mt-2 mb-1 px-3 py-2 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900 rounded-lg">
+                              <p className="text-xs font-medium text-red-700 dark:text-red-400 mb-0.5">Vendor response</p>
+                              <p className="text-sm text-red-800 dark:text-red-300">{booking.vendorResponseNote}</p>
+                            </div>
+                          )}
+
+                          {/* Cancellation pending note */}
+                          {booking.status === 'cancellation_pending' && (
+                            <div className="mt-2 mb-1 px-3 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900 rounded-lg">
+                              <p className="text-xs font-medium text-amber-700 dark:text-amber-400">Cancellation under admin review</p>
+                            </div>
+                          )}
+
                           <div className="flex flex-col gap-2">
                             {booking.status === 'pending' && (
                               <Button
@@ -350,6 +451,17 @@ export default function CustomerBookingsPage() {
                               >
                                 <X className="w-4 h-4" />
                                 Cancel
+                              </Button>
+                            )}
+                            {booking.status === 'accepted' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-2 bg-transparent text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                onClick={() => { setCancelRequestDialog(booking); setCancelReason(''); setCancelProofUrl('') }}
+                              >
+                                <X className="w-4 h-4" />
+                                Request Cancellation
                               </Button>
                             )}
                             {booking.status === 'accepted' && booking.paymentStatus !== 'paid' && (

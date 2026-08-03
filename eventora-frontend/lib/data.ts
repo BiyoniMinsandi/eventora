@@ -20,7 +20,7 @@ export interface Booking {
   guestCount?: number
   budget?: string
   specialRequests?: string
-  status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled'
+  status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled' | 'cancellation_pending'
   vendorResponseNote?: string
   paymentId?: string
   paymentStatus: 'unpaid' | 'pending' | 'processing' | 'paid' | 'refunded' | 'failed'
@@ -28,6 +28,11 @@ export interface Booking {
   currency: string
   createdAt: string
   updatedAt: string
+  cancellationRequestedBy?: string
+  cancellationReason?: string
+  cancellationProofUrl?: string
+  vendorRefundConfirmed?: boolean
+  cancellationRequestedAt?: string
 }
 
 export interface Notification {
@@ -204,6 +209,41 @@ export async function updateBookingStatus(
       return await apiFetch<Booking>(`/api/bookings/${bookingId}/complete`, { method: 'POST', body: {} })
     default:
       throw new Error(`Unsupported booking transition: ${status}`)
+  }
+}
+
+export async function requestCancellation(
+  bookingId: string,
+  reason: string,
+  proofUrl?: string,
+  refundConfirmed?: boolean
+): Promise<{ success: boolean; message: string; booking?: Booking }> {
+  try {
+    const booking = await apiFetch<Booking>(`/api/bookings/${bookingId}/request-cancellation`, {
+      method: 'POST',
+      body: { reason, proofUrl, refundConfirmed: refundConfirmed ?? false },
+    })
+    return { success: true, message: 'Cancellation request submitted', booking }
+  } catch (e: any) {
+    return { success: false, message: e?.message || 'Failed to submit cancellation request' }
+  }
+}
+
+export async function approveCancellation(bookingId: string): Promise<{ success: boolean; message: string }> {
+  try {
+    await apiFetch(`/api/admin/bookings/${bookingId}/approve-cancellation`, { method: 'POST', body: {} })
+    return { success: true, message: 'Cancellation approved' }
+  } catch (e: any) {
+    return { success: false, message: e?.message || 'Failed to approve cancellation' }
+  }
+}
+
+export async function rejectCancellation(bookingId: string): Promise<{ success: boolean; message: string }> {
+  try {
+    await apiFetch(`/api/admin/bookings/${bookingId}/reject-cancellation`, { method: 'POST', body: {} })
+    return { success: true, message: 'Cancellation request rejected' }
+  } catch (e: any) {
+    return { success: false, message: e?.message || 'Failed to reject cancellation' }
   }
 }
 
