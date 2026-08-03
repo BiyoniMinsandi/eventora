@@ -244,13 +244,7 @@ authGroup.MapPost("/login", async (
         var token = tokens.CreateToken(user);
         return Results.Ok(new Eventora.Application.Contracts.Auth.AuthResponse(
             token,
-            new Eventora.Application.Contracts.Auth.AuthUserDto(
-                user.Id,
-                user.Email,
-                user.FullName,
-                Eventora.Application.Contracts.Auth.UserRoleParsing.ToApiString(user.Role),
-                user.Role == Eventora.Domain.Users.UserRole.Vendor ? user.Approved : null,
-                user.CreatedAt.ToString("O"))
+            Eventora.Application.Contracts.Users.UserDtoMapping.ToDto(user)
         ));
     })
     .WithName("Login");

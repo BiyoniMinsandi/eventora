@@ -15,7 +15,7 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Calendar, CheckCircle2, X, FileCheck, ArrowLeft } from 'lucide-react'
+import { Calendar, CheckCircle2, X, FileCheck, ArrowLeft, AlertTriangle } from 'lucide-react'
 import { useAuth } from '@/components/auth-provider'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -189,6 +189,14 @@ export default function VendorRequestsPage() {
                       })}
                     </span>
                   </div>
+
+                  {/* Unavailable date warning */}
+                  {user?.blockedDates?.includes(request.eventDate) && (
+                    <div className="flex items-center gap-2 px-3 py-2 mb-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-800 dark:text-amber-300 text-sm">
+                      <AlertTriangle className="w-4 h-4 shrink-0" />
+                      <span>You have marked <strong>{new Date(request.eventDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong> as unavailable. Review carefully before accepting.</span>
+                    </div>
+                  )}
 
                   {/* Request Details */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 pb-4 border-b border-border">

@@ -147,6 +147,16 @@ internal static class BookingsEndpoints
             booking.VendorResponseNote = string.IsNullOrWhiteSpace(req.VendorResponseNote) ? null : req.VendorResponseNote.Trim();
             await bookings.UpdateAsync(booking, ct);
 
+            // Auto-block the event date on the vendor's calendar so no new bookings can be placed on that day.
+            var vendor = await users.GetByIdAsync(booking.VendorId, ct);
+            if (vendor is not null && !string.IsNullOrWhiteSpace(booking.EventDate)
+                && !vendor.BlockedDates.Contains(booking.EventDate))
+            {
+                vendor.BlockedDates.Add(booking.EventDate);
+                vendor.UpdatedAt = DateTimeOffset.UtcNow;
+                await users.UpdateAsync(vendor, ct);
+            }
+
             // Create a booking-linked conversation so the customer and vendor can message each other.
             // We key by BookingId, not by participant pair, so two bookings between the same people
             // get separate threads.

@@ -474,6 +474,23 @@ export async function loginUserApi(
       role: data.user?.role || tokenPayload.role,
       approved: data.user?.approved,
       createdAt: data.user?.createdAt || new Date().toISOString(),
+      phone: data.user?.phone,
+      businessName: data.user?.businessName,
+      category: data.user?.category,
+      location: data.user?.location,
+      description: data.user?.description,
+      photos: data.user?.photos,
+      videos: data.user?.videos,
+      services: data.user?.services,
+      pricing: data.user?.pricing,
+      priceMin: data.user?.priceMin,
+      priceMax: data.user?.priceMax,
+      experience: data.user?.experience,
+      rejectionReason: data.user?.rejectionReason,
+      rejectedAt: data.user?.rejectedAt,
+      approvedAt: data.user?.approvedAt,
+      availability: data.user?.availability,
+      blockedDates: data.user?.blockedDates,
     }
 
     const token: AuthToken = {
