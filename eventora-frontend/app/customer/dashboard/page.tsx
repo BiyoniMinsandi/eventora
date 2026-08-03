@@ -173,7 +173,8 @@ export default function CustomerDashboard() {
                       <Button asChild>
                         <Link href="/vendors">
                           <Search className="w-4 h-4 mr-2" />
-                          Browse Vendors
+                          Find a Vendor
+                     
                         </Link>
                       </Button>
                     </div>

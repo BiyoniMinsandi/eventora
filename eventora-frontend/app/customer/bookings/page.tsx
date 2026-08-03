@@ -22,6 +22,7 @@ import {
   getDisputeByBookingId,
   getReviewByBookingId,
   createCheckoutSession,
+  updateBookingStatus,
 } from '@/lib/data'
 import { logoutUser } from '@/lib/auth'
 import { ReviewDialog } from '@/components/review-dialog'
@@ -36,6 +37,8 @@ export default function CustomerBookingsPage() {
   const [payingBookingId, setPayingBookingId] = useState<string | null>(null)
   const [amountDialog, setAmountDialog] = useState<{ booking: Booking } | null>(null)
   const [enteredAmount, setEnteredAmount] = useState('')
+  const [cancelDialog, setCancelDialog] = useState<Booking | null>(null)
+  const [cancelling, setCancelling] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -161,6 +164,20 @@ export default function CustomerBookingsPage() {
     await initiateCheckout(amountDialog.booking.id, amountInCents)
   }
 
+  const handleCancelConfirm = async () => {
+    if (!cancelDialog || !user) return
+    setCancelling(true)
+    try {
+      await updateBookingStatus(cancelDialog.id, 'cancelled')
+      setBookings(prev => prev.map(b => b.id === cancelDialog.id ? { ...b, status: 'cancelled' } : b))
+    } catch (e: any) {
+      alert(e?.message || 'Failed to cancel booking')
+    } finally {
+      setCancelling(false)
+      setCancelDialog(null)
+    }
+  }
+
   const handleReviewSubmitted = () => {
     // Refresh bookings to reflect review status
     if (!user) return
@@ -209,6 +226,33 @@ export default function CustomerBookingsPage() {
               </Button>
               <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" onClick={handleAmountConfirm}>
                 Proceed to Pay
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel confirmation dialog */}
+      {cancelDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card border border-border rounded-xl p-6 w-full max-w-sm shadow-xl">
+            <h2 className="text-lg font-bold mb-1">Cancel Booking?</h2>
+            <p className="text-sm text-muted-foreground mb-1">
+              You are about to cancel your booking with <strong>{cancelDialog.vendorBusinessName || cancelDialog.vendorName}</strong>.
+            </p>
+            <p className="text-sm text-muted-foreground mb-5">
+              Service: <strong>{cancelDialog.service}</strong> on <strong>{new Date(cancelDialog.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+            </p>
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1" onClick={() => setCancelDialog(null)} disabled={cancelling}>
+                Keep Booking
+              </Button>
+              <Button
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                onClick={handleCancelConfirm}
+                disabled={cancelling}
+              >
+                {cancelling ? 'Cancelling…' : 'Yes, Cancel'}
               </Button>
             </div>
           </div>
@@ -297,6 +341,17 @@ export default function CustomerBookingsPage() {
                           </div>
 
                           <div className="flex flex-col gap-2">
+                            {booking.status === 'pending' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-2 bg-transparent text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                onClick={() => setCancelDialog(booking)}
+                              >
+                                <X className="w-4 h-4" />
+                                Cancel
+                              </Button>
+                            )}
                             {booking.status === 'accepted' && booking.paymentStatus !== 'paid' && (
                               <Button
                                 size="sm"
