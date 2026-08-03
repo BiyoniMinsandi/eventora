@@ -108,7 +108,8 @@ export function Sidebar({ userRole, userName, onLogout }: SidebarProps) {
       onLogout()
     } else {
       logoutUser()
-      router.push('/login')
+      // Admins return to their own portal; all other roles go to the public login.
+      router.push(userRole === 'admin' ? '/staff/login' : '/login')
     }
   }
 
