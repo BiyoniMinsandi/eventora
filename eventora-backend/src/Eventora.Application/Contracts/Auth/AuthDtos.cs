@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Eventora.Application.Contracts.Users;
 using Eventora.Domain.Users;
 
 namespace Eventora.Application.Contracts.Auth;
@@ -29,7 +30,7 @@ public sealed record AuthUserDto(
     bool? Approved,
     string CreatedAt);
 
-public sealed record AuthResponse(string Token, Eventora.Application.Contracts.Users.UserDto User);
+public sealed record AuthResponse(string Token, UserDto User);
 
 public static class UserRoleParsing
 {
