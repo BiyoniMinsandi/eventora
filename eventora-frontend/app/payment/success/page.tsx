@@ -30,24 +30,29 @@ function SuccessContent() {
 
     let cancelled = false
     ;(async () => {
-      try {
-        const result = await verifyPaymentSession(sessionId)
+      for (let attempt = 0; attempt < 5; attempt++) {
+        if (attempt > 0) await new Promise(r => setTimeout(r, 1500))
         if (cancelled) return
-        if (result.paymentStatus === 'paid') {
-          setState('success')
-          setBookingId(result.bookingId)
-          setAmount({ cents: result.amountInCents, currency: result.currency })
-          // Fetch full booking details for the receipt
-          const bk = await getBookingById(result.bookingId)
-          if (!cancelled && bk) setBooking(bk)
-        } else {
-          setState('error')
-          setError(`Payment status: ${result.paymentStatus}. Please contact support if you were charged.`)
+        try {
+          const result = await verifyPaymentSession(sessionId)
+          if (cancelled) return
+          if (result.paymentStatus === 'paid') {
+            setState('success')
+            setBookingId(result.bookingId)
+            setAmount({ cents: result.amountInCents, currency: result.currency })
+            const bk = await getBookingById(result.bookingId)
+            if (!cancelled && bk) setBooking(bk)
+            return
+          }
+          // status not "paid" yet — retry after delay
+        } catch {
+          if (cancelled) return
+          // network/server error — retry
         }
-      } catch (e: any) {
-        if (cancelled) return
+      }
+      if (!cancelled) {
         setState('error')
-        setError(e?.message || 'Failed to verify payment.')
+        setError('Payment could not be verified. If you were charged, please contact support.')
       }
     })()
     return () => { cancelled = true }
